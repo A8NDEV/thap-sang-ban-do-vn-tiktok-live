@@ -1,9 +1,12 @@
 // Hệ thống hạt pháo hoa & chấn động màn hình (Canvas 2D tăng tốc phần cứng)
 // Tự động dừng requestAnimationFrame khi hết hạt → 0% CPU khi rảnh.
 import { $ } from './util.js';
+import { createPool } from './fx-pool.js';
+import { glowSprite } from './fx-glow.js';
+import { frameScale } from './fx-quality.js';
+import { feedFrame, particleCap, qualityLevel } from './fx-perf.js';
 
 let canvas = null, ctx = null;
-const particles = [];
 let animId = null;
 
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -15,85 +18,91 @@ export function initParticles(el) {
   ctx = canvas.getContext('2d');
 }
 
-class Particle {
-  constructor(x, y, color, speed, angle, gravity = 0.14, drag = 0.96, size = 3.5, decay = 0.016, spark = false) {
-    this.x = x;
-    this.y = y;
-    this.color = color;
-    this.vx = Math.cos(angle) * speed;
-    this.vy = Math.sin(angle) * speed;
-    this.gravity = gravity;
-    this.drag = drag;
-    this.size = size;
-    this.alpha = 1;
-    this.decay = decay;
-    this.spark = spark;
-    this.trail = [];
-  }
+const pool = createPool(1500);
+let lastTs = 0;
 
-  update() {
-    this.trail.push({ x: this.x, y: this.y, alpha: this.alpha });
-    if (this.trail.length > 5) this.trail.shift();
-
-    this.vx *= this.drag;
-    this.vy *= this.drag;
-    this.vy += this.gravity;
-    this.x += this.vx;
-    this.y += this.vy;
-    this.alpha -= this.decay;
-  }
-
-  draw(c) {
-    if (this.alpha <= 0) return;
-
-    // Vệt đuôi sáng
-    if (this.trail.length > 1) {
-      c.beginPath();
-      c.moveTo(this.trail[0].x, this.trail[0].y);
-      for (let i = 1; i < this.trail.length; i++) {
-        c.lineTo(this.trail[i].x, this.trail[i].y);
-      }
-      c.strokeStyle = this.color;
-      c.lineWidth = Math.max(1, this.size * 0.6);
-      c.globalAlpha = Math.max(0, this.alpha * 0.4);
-      c.stroke();
-    }
-
-    // Hạt chính phát sáng
-    c.beginPath();
-    c.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-    c.fillStyle = this.color;
-    c.globalAlpha = Math.max(0, this.alpha);
-    c.shadowBlur = this.spark ? 14 : 6;
-    c.shadowColor = this.color;
-    c.fill();
-    c.shadowBlur = 0;
-  }
+const SCALE = [1, 0.6, 0.35];
+function scaled(n) {
+  if (!(n >= 1)) return 0;
+  return Math.max(1, Math.round(n * (SCALE[qualityLevel()] ?? 1)));
 }
 
-function loop() {
-  if (!ctx || !canvas) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// init chỉ gán số/chuỗi, không bao giờ ném lỗi (hạt đã lấy từ kho sẽ bị rò nếu ném).
+function spawn(x, y, color, speed, angle, gravity, drag, size, decay) {
+  pool.add(p => {
+    p.x = x; p.y = y; p.px = x; p.py = y;
+    p.vx = Math.cos(angle) * speed;
+    p.vy = Math.sin(angle) * speed;
+    p.color = color; p.gravity = gravity; p.drag = drag;
+    p.size = size; p.alpha = 1; p.decay = decay; p.spark = true;
+  });
+}
 
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.update();
-    p.draw(ctx);
-    if (p.alpha <= 0) {
-      particles.splice(i, 1);
-    }
+const TRAIL_K = 0.22;
+let sc = 1, trailK = TRAIL_K;
+
+function step(p) {
+  // Điểm đuôi bám theo đầu hạt (làm mượt, độc lập tốc độ khung), vẽ vệt bằng một đoạn thẳng.
+  p.px += (p.x - p.px) * trailK;
+  p.py += (p.y - p.py) * trailK;
+  const d = sc === 1 ? p.drag : Math.pow(p.drag, sc);
+  p.vx *= d;
+  p.vy *= d;
+  p.vy += p.gravity * sc;
+  p.x += p.vx * sc;
+  p.y += p.vy * sc;
+  p.alpha -= p.decay * sc;
+  if (p.alpha <= 0) return false;
+
+  ctx.strokeStyle = p.color;
+  ctx.lineWidth = Math.max(1.5, p.size * 0.8);
+  ctx.globalAlpha = Math.max(0, p.alpha * 0.55);
+  ctx.beginPath();
+  ctx.moveTo(p.px, p.py);
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+
+  const r = p.size * (p.spark ? 3.2 : 2.2);
+  ctx.globalAlpha = Math.max(0, p.alpha);
+  ctx.drawImage(glowSprite(p.color), p.x - r, p.y - r, 2 * r, 2 * r);
+
+  // Lõi trắng sáng
+  const c = p.size;
+  ctx.globalAlpha = Math.max(0, p.alpha * 0.85);
+  ctx.drawImage(glowSprite('#ffffff'), p.x - c, p.y - c, 2 * c, 2 * c);
+  return true;
+}
+
+function loop(ts) {
+  if (!ctx || !canvas) { animId = null; lastTs = 0; return; }
+  // Chỉ nạp khoảng thời gian giữa hai khung liên tiếp; khung đầu của đợt bắn thì bỏ qua.
+  if (lastTs) {
+    const dt = ts - lastTs;
+    feedFrame(dt);
+    sc = frameScale(dt);
+  } else {
+    sc = 1;
   }
+  trailK = 1 - Math.pow(1 - TRAIL_K, sc);
+  lastTs = ts;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.globalCompositeOperation = 'lighter';
+  pool.forEach(step);
+  ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
 
-  if (particles.length > 0) {
+  if (pool.count > 0) {
     animId = requestAnimationFrame(loop);
   } else {
     animId = null;
+    lastTs = 0;
   }
 }
 
 function startLoop() {
   if (!animId) {
+    lastTs = 0;
     animId = requestAnimationFrame(loop);
   }
 }
@@ -107,14 +116,17 @@ const PALETTES = {
 };
 
 export function launchFirework(x, y, paletteName = 'gold', count = 65, power = 15) {
+  if (!ctx) return;
+  pool.setCap(particleCap());
   const pal = PALETTES[paletteName] || PALETTES.gold;
-  for (let i = 0; i < count; i++) {
+  const n = scaled(count);
+  for (let i = 0; i < n; i++) {
     const angle = rnd(0, Math.PI * 2);
     const speed = rnd(power * 0.25, power);
     const col = pick(pal);
     const decay = rnd(0.012, 0.024);
     const size = rnd(2.5, 4.5);
-    particles.push(new Particle(x, y, col, speed, angle, 0.12, 0.95, size, decay, true));
+    spawn(x, y, col, speed, angle, 0.12, 0.95, size, decay);
   }
   startLoop();
 }
@@ -157,11 +169,14 @@ export function screenShake(level = 'sm') {
 
 // Hạt stardust bay theo rồng vàng
 export function dragonSparkles(x, y, n = 8) {
+  if (!ctx) return;
+  pool.setCap(particleCap());
+  n = scaled(n);
   for (let i = 0; i < n; i++) {
     const angle = rnd(0, Math.PI * 2);
     const speed = rnd(2, 8);
     const col = pick(PALETTES.gold);
-    particles.push(new Particle(x, y, col, speed, angle, 0.05, 0.94, rnd(2.5, 4.5), 0.03, true));
+    spawn(x, y, col, speed, angle, 0.05, 0.94, rnd(2.5, 4.5), 0.03);
   }
   startLoop();
 }

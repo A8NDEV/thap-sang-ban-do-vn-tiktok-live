@@ -73,7 +73,7 @@ async function shutdown(code = 0){
   try { await Promise.race([disconnectTikTok(false), new Promise(r => setTimeout(r, 1500))]); } catch {}
   process.exit(code);
 }
-setShutdown(code => shutdown(code));   // bộ cập nhật gọi sau khi chép bản mới → CHAY.bat chạy lại
+setShutdown(code => shutdown(code));   // tắt an toàn theo yêu cầu (CHAY.bat chạy lại nếu mã thoát khác 77)
 for (const sig of ['SIGINT', 'SIGTERM', 'SIGBREAK', 'SIGHUP']) process.on(sig, () => shutdown(0));
 process.on('message', m => { if (m?.type === 'shutdown') shutdown(0); });
 process.on('beforeExit', () => { try { flushAll(); } catch {} });

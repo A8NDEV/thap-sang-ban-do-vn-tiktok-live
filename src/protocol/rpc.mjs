@@ -24,7 +24,7 @@ import { webhookEvents } from '../ingest/webhook.mjs';
 import { license, LICENSE_MSG, licenseMsg } from '../dist/license.mjs';
 import { catalogView, refreshCatalog } from '../ingest/gift-catalog.mjs';
 import { GIFT_ACTS } from '../domain/gift-acts.mjs';
-import { updater, dataSync, distMsg, pushDist } from '../dist/index.mjs';
+import { dataSync, distMsg, pushDist } from '../dist/index.mjs';
 import { obsLinks, addHost, openWindow, fixFirewall } from './obs.mjs';
 
 class RpcError extends Error { constructor(code, message){ super(message); this.code = code; } }
@@ -101,11 +101,9 @@ export const METHODS = {
   'obs.openWindow': () => openWindow(),
   'obs.fixFirewall': () => fixFirewall(),
 
-  // phiên bản / cập nhật / dữ liệu từ máy chủ (đều cần key)
+  // phiên bản / dữ liệu từ máy chủ (cần key). Không còn tự cập nhật mã nguồn.
   'app.status': () => distMsg(),
   'app.quit': () => { setTimeout(requestQuit, 200); return { ok: true }; },   // tắt hẳn app (mở bản mới thì gọi để tắt bản cũ)
-  'update.check': async () => { const r = await updater.check(); if (!r.ok) throw new RpcError(-32004, r.error); const { info, ...rest } = r; pushDist(); return rest; },
-  'update.apply': () => { updater.apply().catch(() => {}).finally(pushDist); pushDist(); return updater.status(); },
   'data.sync': () => { if (!license.activated) throw new RpcError(-32003, 'Chưa kích hoạt key — nhập key rồi dữ liệu sẽ tự tải.'); dataSync.sync().then(pushDist); pushDist(); return dataSync.status(); },
 
   // quà: danh sách quà TikTok (hình + giá) và bảng quà → hành động (lưu qua settings.set { giftMap })

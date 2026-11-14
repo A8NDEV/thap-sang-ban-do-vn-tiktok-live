@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>fx-bench</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0f1a; color: #cfe; font: 14px/1.4 monospace; }
+  #stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #fxCanvas { max-width: 100vw; max-height: 100vh; width: auto; height: auto; aspect-ratio: 1080 / 1920; background: #000; }
+  #out { position: fixed; left: 8px; top: 8px; white-space: pre; background: rgba(0,0,0,.6); padding: 6px 8px; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="fxCanvas" width="1080" height="1920"></canvas></div>
+<div id="out">đang chạy kịch bản 12 giây...</div>
+<script type="module">
+import { initParticles, launchMassiveFireworks, launchFireworkCluster } from '/public/js/overlay/particles.js';
+
+const DURATION_MS = 12000;
+const STEP_MS = 600;
+const rnd = (a, b) => a + Math.random() * (b - a);
+
+initParticles(document.getElementById('fxCanvas'));
+
+const dts = [];
+let last = 0, startT = 0, lastLaunch = -Infinity;
+
+function launch() {
+  launchMassiveFireworks();
+  for (let i = 0; i < 2; i++) launchFireworkCluster(rnd(200, 880), rnd(300, 1600), 5, 'royal');
+}
+
+function finish() {
+  const n = dts.length;
+  const sum = dts.reduce((a, b) => a + b, 0);
+  const sorted = [...dts].sort((a, b) => b - a);          // khung chậm nhất trước
+  const k = Math.max(1, Math.ceil(n * 0.01));
+  const slow = sorted.slice(0, k).reduce((a, b) => a + b, 0) / k;
+  window.__bench = {
+    avgFps: n ? +(1000 * n / sum).toFixed(2) : 0,
+    lowFps1pct: n ? +(1000 / slow).toFixed(2) : 0,
+    maxFrameMs: n ? +sorted[0].toFixed(2) : 0,
+    frames: n,
+  };
+  document.getElementById('out').textContent =
+    'xong\n' + JSON.stringify(window.__bench, null, 2);
+}
+
+function tick(t) {
+  if (!startT) { startT = t; last = t; }
+  else { dts.push(t - last); last = t; }
+  const el = t - startT;
+  if (el - lastLaunch >= STEP_MS && el < DURATION_MS) { lastLaunch = el; launch(); }
+  if (el >= DURATION_MS) return finish();
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>

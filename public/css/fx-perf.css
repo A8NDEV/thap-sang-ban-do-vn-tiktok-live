@@ -1,0 +1,7 @@
+/* Giảm hiệu ứng nặng. Luật degrade theo html[data-q] (do bộ điều khiển chất lượng đặt) chỉ đổi hình ảnh khi máy đang quá tải nên được giữ lại; việc bỏ nền mờ luôn bật ở thẻ/banner đã được kiểm tra bằng mắt là nhìn không khác. */
+
+/* Khối kính mờ (backdrop-filter) luôn bật tốn GPU mà nhìn không khác (đã so ảnh chụp). Các board toi-gian / khung-vang / the-sang vốn đã tắt blur trong themes.css nên không bị ảnh hưởng. */
+.card, #banner { backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+html[data-q="1"] .sea-wave, html[data-q="1"] .sea-coast, html[data-q="2"] .sea-wave, html[data-q="2"] .sea-coast { display: none; }
+html[data-q="2"] #tilt { animation: none; }

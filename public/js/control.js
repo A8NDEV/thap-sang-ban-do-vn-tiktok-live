@@ -40,10 +40,7 @@ const handlers = {
   },
   dist: m => {
     $('#appVer').textContent = m.version || '?';
-    const u = m.update, d = m.data, um = $('#updMsg'), dm = $('#dataMsg');
-    if (['download', 'extract', 'copy', 'check', 'restart'].includes(u.stage)) { um.className = ''; um.textContent = u.msg; }
-    else if (u.stage === 'error' && u.error) { um.className = 'err'; um.textContent = '✗ ' + u.error; }
-    if (u.stage === 'restart') setTimeout(() => location.reload(), 8000);
+    const d = m.data, dm = $('#dataMsg');
     $('#btnData').hidden = !m.activated || ['list', 'download'].includes(d.stage);
     dm.className = d.stage === 'error' ? 'err' : d.stage === 'done' ? 'ok' : '';
     dm.textContent = d.stage === 'idle' ? (m.activated ? '' : '🎨 7 style màn hình + 🎙 giọng MC + nhạc mẫu tự tải sau khi kích hoạt key') : '⬇ ' + (d.error || d.msg);
@@ -168,19 +165,7 @@ $('#btnGiftRefresh').onclick = async () => {
 };
 loadCatalog();
 
-/* ---------- phiên bản / cập nhật / dữ liệu từ máy chủ ---------- */
-const updMsg = (t, c = '') => { $('#updMsg').className = c; $('#updMsg').textContent = t; };
-$('#btnUpdCheck').onclick = async () => {
-  $('#btnUpdApply').hidden = true; $('#updNotes').hidden = true; updMsg('Đang kiểm tra key và phiên bản…'); $('#btnUpdCheck').disabled = true;
-  try {
-    const d = await rpc.call('update.check', {}, 90000);
-    if (!d.hasUpdate) return updMsg('✓ Key hợp lệ · đang dùng bản mới nhất' + (d.latest ? ' (' + d.latest + ')' : ''), 'ok');
-    updMsg('🆕 Có bản mới ' + d.latest + (d.size ? ' · ' + (d.size / 1048576).toFixed(0) + ' MB' : '') + (d.inPlace ? '' : ' — tải bản mới bằng link trong email mua hàng'), 'ok');
-    if (d.notes) { $('#updNotes').textContent = d.notes; $('#updNotes').hidden = false; }
-    if (d.inPlace) { $('#btnUpdApply').textContent = '⬇ Cập nhật lên ' + d.latest; $('#btnUpdApply').hidden = false; }
-  } catch (e) { updMsg('✗ ' + e.message, 'err'); } finally { $('#btnUpdCheck').disabled = false; }
-};
-$('#btnUpdApply').onclick = () => confirm('Cập nhật bản mới? Tool sẽ tự khởi động lại (nên làm khi KHÔNG live). Dữ liệu, điểm, Chủ tỉnh, bản quyền giữ nguyên.') && call('update.apply');
+/* ---------- dữ liệu từ máy chủ (đã gỡ nút cập nhật phiên bản) ---------- */
 $('#btnData').onclick = () => call('data.sync');
 
 /* ---------- link OBS / điện thoại ---------- */
@@ -351,7 +336,7 @@ function markTheme(t){ for (const b of document.querySelectorAll('#themes [data-
 for (const b of document.querySelectorAll('#themes [data-theme]')) b.addEventListener('click', () => {
   if (b.classList.contains('locked')) {
     const el = $('#styleDl'); el.hidden = false; el.querySelector('i').style.width = '0%';
-    el.querySelector('span').textContent = lockWhy.startsWith('🔒') ? 'Style này nằm trong gói giao diện — nhập key ở mục bản quyền, gói tự tải về (vài giây).' : lockWhy.startsWith('⏳') ? 'Đang tải gói giao diện, xong là chọn được ngay.' : 'Chưa có gói giao diện — bấm "⬇ Tải dữ liệu" ở mục Phiên bản & cập nhật.';
+    el.querySelector('span').textContent = lockWhy.startsWith('🔒') ? 'Style này nằm trong gói giao diện — nhập key ở mục bản quyền, gói tự tải về (vài giây).' : lockWhy.startsWith('⏳') ? 'Đang tải gói giao diện, xong là chọn được ngay.' : 'Chưa có gói giao diện — bấm "⬇ Tải dữ liệu" ở mục Bản quyền & dữ liệu.';
     return;
   }
   const inp = $('#themeVal'); inp.value = b.dataset.theme; markTheme(inp.value); inp.dispatchEvent(new Event('change'));

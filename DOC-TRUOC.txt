@@ -4,5 +4,10 @@ THAP SANG BAN DO VIET NAM - phien ban 2026.11.10.3
 2. Bam dup CHAY.bat -> trang dieu khien tu mo (http://localhost:3002/control.html).
 3. Lam theo tab "Huong dan ket noi" tren trang dieu khien (nhap key, ket noi TikTok, them vao OBS / LIVE Studio).
 LIVE bang dien thoai: bam nut "Bat LIVE bang dien thoai" trong trang dieu khien (hoac mo bang CHAY-DIEN-THOAI.bat).
-Cap nhat: trang dieu khien -> tab "Cap nhat & ban quyen" -> Kiem tra cap nhat (du lieu, diem, key giu nguyen).
+Da go tinh nang tu cap nhat (no chep de ma nguon). Muon len ban moi thi tu tai va tu hop nhat thu cong.
 Giong MC doc tot nhat khi may co Python + edge-tts:  pip install -U edge-tts
+
+DO FPS THAT TRONG LIVE STUDIO / OBS:
+Them ?fps=1 vao cuoi duong dan overlay, vi du http://localhost:3002/overlay.html?fps=1 - goc tren trai man hinh hien FPS va muc chat luong (vi du: FPS 58 - Q0).
+Q0 = day du hieu ung. Q1 = bot cac lop anh sang nen. Q2 = nhe nhat (dung ca chuyen dong lac nhe cua ban do). Tool tu ha muc khi may bi giat va tu tang lai khi on dinh; khong can chinh tay.
+Do vao luc co nhieu qua dong thoi (luc nang nhat) roi gui lai so FPS de chinh nguong. NHO BO ?fps=1 truoc khi live that.

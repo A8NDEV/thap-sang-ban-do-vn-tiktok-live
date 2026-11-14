@@ -62,13 +62,21 @@ export function render(s){
     b.querySelector('.nm').textContent = last.name;
     b.classList.remove('anim'); void b.offsetWidth; b.classList.add('anim');
   } else if (!last) { b.dataset.k = ''; b.innerHTML = '<div class="empty">Chưa có ai thắp đèn.<br>Comment tên quê bạn để là người đầu tiên!</div>'; }
+  // hàm vẽ huy hiệu xếp hạng: Top 1 vương miện vàng hoàng gia, Top 2 bạc, Top 3 đồng, từ Top 4 số rõ nét
+  const rkBadge = rank => {
+    if (rank === 1) return '<div class="rk rk-1" title="Top 1"><span class="rk-ico">👑</span></div>';
+    if (rank === 2) return '<div class="rk rk-2" title="Top 2"><span class="rk-ico">🥈</span></div>';
+    if (rank === 3) return '<div class="rk rk-3" title="Top 3"><span class="rk-ico">🥉</span></div>';
+    return `<div class="rk rk-sub"><span class="rk-num">${rank}</span></div>`;
+  };
+
   // đua thắp đèn
   const top = s.round.top, max = Math.max(1, ...top.map(x => x.pts));
-  flipList($('#race'), top.length ? top.map((x, i) => `<div class="row" data-id="${esc(x.prov)}"><div class="fill" style="width:${x.pts / max * 100}%"></div><div class="rk">${i + 1}</div><div class="pn">${esc(short(x.prov))}${s.wins[x.prov] ? `<small>🏆${s.wins[x.prov]}</small>` : ''}</div><div class="pt">${x.pts}</div></div>`).join('')
+  flipList($('#race'), top.length ? top.map((x, i) => `<div class="row ${i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : ''}" data-id="${esc(x.prov)}"><div class="fill" style="width:${x.pts / max * 100}%"></div>${rkBadge(i + 1)}<div class="pn">${esc(short(x.prov))}${s.wins[x.prov] ? `<small>🏆${s.wins[x.prov]}</small>` : ''}</div><div class="pt">${x.pts}</div></div>`).join('')
     : `<div class="empty">Vòng đua bắt đầu khi có người thắp đèn.<br>Comment, tặng quà để cộng điểm cho quê!</div>`);
   // quà
   const g = s.gifts, gm = Math.max(1, ...g.map(x => x.coins));
-  flipList($('#gifts'), g.length ? g.map((x, i) => `<div class="row" data-id="${esc(x.prov)}"><div class="fill" style="width:${x.coins / gm * 100}%"></div><div class="rk">${i + 1}</div><div class="pn">${esc(short(x.prov))}</div><div class="pt">${x.coins}</div></div>`).join('')
+  flipList($('#gifts'), g.length ? g.map((x, i) => `<div class="row ${i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : ''}" data-id="${esc(x.prov)}"><div class="fill" style="width:${x.coins / gm * 100}%"></div>${rkBadge(i + 1)}<div class="pn">${esc(short(x.prov))}</div><div class="pt">${x.coins}</div></div>`).join('')
     : `<div class="empty">Chưa có quà.<br>Tặng quà để quê bạn lên bảng nhé 🎁</div>`);
   // bảng điểm (bậc quà)
   const r = s.rules, T = r.tiers || [];
