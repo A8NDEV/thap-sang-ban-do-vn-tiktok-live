@@ -12,7 +12,11 @@ import { duelAdd, duelView, startDuel } from './duel.mjs';
 import { actFor, giftMenu } from './gift-acts.mjs';
 import { quizAnswer, quizActive, quizView } from './quiz.mjs';
 import { chestAdd, chestView } from './chest.mjs';
+import { crossedFull } from './full-rule.mjs';
 import { addRegionScore, getRegionsSnapshot, resetRegionsScore, is3MienModalOpen } from './regions.mjs';
+import { LEVEL_NAMES, parseTiers, levelOf, nextInfo } from './levels.mjs';
+import { rankList, detectOvertake } from './ranking.mjs';
+import { missionOnChat, missionView } from './mission.mjs';
 
 /* ------------------------------------------------------------------ trạng thái gửi overlay */
 export const litCount = () => Object.keys(S.lit).length;
@@ -25,13 +29,14 @@ export function snapshot(){
     t: 'state', lit, litCount: litCount(), total: TOTAL, people: peopleCount(), last: S.last,
     round: { no: S.roundNo, endsAt: S.roundEnd, now: Date.now(), top: sortObj(S.pts, 5).map(([prov, pts]) => ({ prov, pts })) },
     gifts: sortObj(S.gifts, 5).map(([prov, coins]) => ({ prov, coins })),
-    donors: Object.values(S.donors).sort((a, b) => b.coins - a.coins).slice(0, 3),
+    donors: Object.values(S.donors).sort((a, b) => b.coins - a.coins).slice(0, 3).map(d => ({ ...d, level: settings.levelOn ? levelOf(d.coins, parseTiers(settings.levelTiers)) : 0 })),
     quiz: quizView(),
     chest: chestView(),
+    mission: missionView(),
     regions: getRegionsSnapshot().regions,
     regionsModalOpen: is3MienModalOpen(),
-    wins: S.wins, menu: settings.giftMenuOn ? giftMenu(settings.giftMap) : [], owners: settings.ownerOn ? ownersView() : {}, duel: duelView(), rules: { commentPts: settings.commentPts, likePts: settings.likePts, followPts: settings.followPts, duelFollowPts: settings.duelFollowPts, tiers: tiers(), fullCoins: settings.fullCoins, roundMin: settings.roundMin, quizPts: settings.quizPts },
-    look: { theme: settings.theme, lite: settings.fxLite, board: settings.boardStyle, map3d: settings.map3d },
+    wins: S.wins, menu: settings.giftMenuOn && settings.mcGiftCta ? giftMenu(settings.giftMap) : [], owners: settings.ownerOn ? ownersView() : {}, duel: duelView(), rules: { commentPts: settings.commentPts, likePts: settings.likePts, followPts: settings.followPts, duelFollowPts: settings.duelFollowPts, tiers: tiers(), fullCoins: settings.fullCoins, roundMin: settings.roundMin, quizPts: settings.quizPts, levelTiers: settings.levelTiers, levelOn: settings.levelOn },
+    look: { safe: !settings.mcGiftCta, theme: settings.theme, lite: settings.fxLite, camZoom: !!settings.camZoom, showFps: !!settings.showFps, lensOn: !!settings.lensOn, softZoom: !!settings.softZoom, board: settings.boardStyle, map3d: settings.map3d },
   };
 }
 let pushT = null;
@@ -58,7 +63,7 @@ setInterval(() => { const old = Date.now() - 60_000; for (const [k, t] of lastCm
 export function raceTail(ten){
   const top = sortObj(S.pts, 99), r = top.findIndex(([t]) => t === ten);
   if (r === 0) return top[1] ? `${ten} đang dẫn đầu vòng đua, hơn ${top[1][0]} ${top[0][1] - top[1][1]} điểm!` : `${ten} đang dẫn đầu vòng đua!`;
-  if (r > 0) { const gap = top[0][1] - top[r][1] + 1, need = tiers().find(([, p]) => p >= gap); return need ? `Chỉ cần thêm quà ${need[0]} xu là ${ten} vượt ${top[0][0]} lên dẫn đầu!` : `${ten} đang đứng thứ ${r + 1}, cố lên!`; }
+  if (r > 0) { const gap = top[0][1] - top[r][1] + 1, need = settings.mcGiftCta ? tiers().find(([, p]) => p >= gap) : null; return need ? `Chỉ cần thêm quà ${need[0]} xu là ${ten} vượt ${top[0][0]} lên dẫn đầu!` : `${ten} đang đứng thứ ${r + 1}, cố lên!`; }
   return '';
 }
 
@@ -168,6 +173,7 @@ export function onChat(uid, name, rawText, avatar){
   seen(uid, name);
   if (quizAnswer(uid, cleanName(name), avatar, text)) { S.lastAct = Date.now(); return; }   // đáp án đúng câu đố: cộng điểm, không thắp đèn theo nó
   const provs = findProvinces(text);
+  if (!isBotUid(uid)) missionOnChat(uid, provs);
   for (const k of findIsland(text)) {
     broadcast({ t: 'island', k, name: cleanName(name) });
     if (Date.now() - islandAt[k] > 90_000) { islandAt[k] = Date.now(); say([ISLAND_LINE[k]], { tag: 'light2' }); }
@@ -226,17 +232,37 @@ export function onFollow(uid, name, avatar){
     if (!isBot) say([`Cảm ơn ${nm} đã follow kênh!`, dyn(`Comment tên tỉnh quê bạn để nhận ngay ${pts} điểm cho quê nhé.`)], { tag: 'gift' });
   }
 }
+// cấp độ + vượt hạng của người tặng (chỉ người thật): tính đồng bộ ngay lúc có quà, phát trễ 700ms để banner quà hiện trước
+const NO_LV = { lv: 0, lvName: '', lvNext: null, lvNeed: 0 };
+function levelFx(D, before, rkBefore, prov, uid){
+  if (!settings.levelOn && !settings.overtakeOn) return NO_LV;
+  const tr = parseTiers(settings.levelTiers), ni0 = nextInfo(D.coins, tr), ni = settings.mcGiftCta ? ni0 : { ...ni0, next: null, need: 0 }, oldLv = levelOf(before, tr);
+  const who = { name: D.name, avatar: D.avatar || '' };
+  if (settings.levelOn && ni.level > oldLv) setTimeout(() => {
+    broadcast({ t: 'levelUp', ...who, level: ni.level, levelName: LEVEL_NAMES[ni.level], next: ni.next, need: ni.need, prov });
+    say([dyn(ni.next ? `${who.name} lên cấp ${ni.name}! Còn ${ni.need} xu nữa lên ${ni.next}.` : `${who.name} đã đạt cấp ${ni.name}!`)], { tag: 'gift' });
+  }, 700);
+  const ov = settings.overtakeOn && settings.mcGiftCta ? detectOvertake(rkBefore, rankList(S.donors, 1000), uid) : null;
+  if (ov) setTimeout(() => {
+    broadcast({ t: 'overtake', ...who, rank: ov.rank, passedName: ov.passed?.name || '', passedAvatar: ov.passed?.avatar || '' });
+    say([dyn(ov.passed ? `${who.name} vượt ${ov.passed.name} lên hạng ${ov.rank}!` : `${who.name} vào top ${ov.rank}!`)], { tag: 'gift' });
+  }, 700);
+  return settings.levelOn ? { lv: ni.level, lvName: LEVEL_NAMES[ni.level], lvNext: ni.next, lvNeed: ni.need } : NO_LV;
+}
 // quà → điểm theo bậc; đủ fullCoins xu (một lần hoặc cộng dồn cả buổi) → cả nước rực sáng
 export function onGift(uid, name, giftName, cnt, price, avatar, giftId = ''){
   const isBot = isBotUid(uid);
   S.lastAct = Date.now();
   const f = fan(uid, name, avatar), coins = cnt * price, nm = cleanName(name);
+  let lvx = NO_LV;
   if (!isBot) {
     const D = S.donors[uid] ||= { name: nm, avatar: avatar || '', coins: 0 };
+    const rkBefore = rankList(S.donors, 1000);
     const before = D.coins; D.coins += coins; D.name = nm; if (avatar) D.avatar = avatar;
+    lvx = levelFx(D, before, rkBefore, f.home, uid);
   }
   const act = actFor(settings.giftMap, giftId, giftName);   // quà đã gán hành động (Sàn Quẩy-style)
-  const full = act === 'casang' || (settings.fullCoins && Math.floor((S.donors[uid]?.coins || coins) / settings.fullCoins) > 0);
+  const full = act === 'casang' || crossedFull(S.donors[uid]?.coins, coins, settings.fullCoins);   // vượt một mốc fullCoins (không bật lại ở mọi quà sau)
   if (act === 'daichien') { const r = startDuel(); if (!r.ok) addLog('⚔️ Quà mở Đại chiến: ' + r.error); }
   const pts = full ? Math.max(ptsFor(coins), settings.fullPts) : ptsFor(coins);
   const what = `${cnt > 1 ? cnt + ' ' : ''}${giftName}`;
@@ -250,7 +276,7 @@ export function onGift(uid, name, giftName, cnt, price, avatar, giftId = ''){
 
   if (!f.home) {
     const p = f.pending || { coins: 0, pts: 0 }; p.coins += coins; p.pts += pts; f.pending = p; saveFans();
-    broadcast({ t: 'gift', prov: '', name: nm, avatar: avatar || '', coins, pts, gift: what, act, isBot });
+    broadcast({ t: 'gift', prov: '', name: nm, avatar: avatar || '', coins, pts, gift: what, act, isBot, ...lvx });
     addRegionScore(what, 'gift', pts, nm, avatar, { coins, gift: what });
     if (!isBot) say([nm, `ơi, cảm ơn bạn đã tặng ${what}!`, dyn(`Comment tên tỉnh quê bạn để cộng ${p.pts} điểm cho quê nhé.`)], { tag: 'gift' });
     push(); return;
@@ -260,7 +286,7 @@ export function onGift(uid, name, giftName, cnt, price, avatar, giftId = ''){
   addPts(f.home, pts);
   chestAdd(f.home, Math.max(1, Math.round(coins / 2)), nm);
   addRegionScore(f.home, 'gift', pts, nm, avatar, { coins, gift: what });
-  broadcast({ t: 'gift', prov: f.home, name: nm, avatar: avatar || '', coins, pts, gift: what, act, isBot });
+  broadcast({ t: 'gift', prov: f.home, name: nm, avatar: avatar || '', coins, pts, gift: what, act, isBot, ...lvx });
   if (!isBot) {
     const hype = coins >= 100 ? ['Đại gia', nm, 'chơi lớn quá!', `Cảm ơn bạn đã tặng ${what}!`] : coins >= 30 ? ['Trời ơi,', nm, `đã tặng ${what}, cảm ơn bạn nhiều lắm!`] : coins >= 5 ? ['Woa, cảm ơn', nm, `đã tặng ${what}!`] : ['Cảm ơn', nm, `đã tặng ${what}!`];
     say([...hype, `Cộng ${pts} điểm cho ${f.home}.`, dyn(raceTail(f.home))], { tag: 'gift' });
@@ -317,7 +343,7 @@ export function endRound(){
     S.wins[w] = (S.wins[w] || 0) + 1;
     broadcast({ t: 'winner', prov: w, pts: p, no: S.roundNo });
     addLog(`🏆 Vòng ${S.roundNo}: ${w} thắng với ${p} điểm`);
-    say([dyn(`Hết giờ! Vòng đua thứ ${S.roundNo}, quê ${w} thắp sáng nhất với ${p} điểm.`), `Chúc mừng bà con ${w}!`, ...(second ? [`Về nhì là ${second[0]}.`] : []), 'Vòng mới bắt đầu rồi, tặng quà để quê mình về nhất nhé!'], { tag: 'win' });
+    say([dyn(`Hết giờ! Vòng đua thứ ${S.roundNo}, quê ${w} thắp sáng nhất với ${p} điểm.`), `Chúc mừng bà con ${w}!`, ...(second ? [`Về nhì là ${second[0]}.`] : []), settings.mcGiftCta ? 'Vòng mới bắt đầu rồi, tặng quà để quê mình về nhất nhé!' : 'Vòng mới bắt đầu rồi, bà con comment tên quê để thắp đèn nhé!'], { tag: 'win' });
     S.roundNo++;
   }
   S.pts = {}; S.roundEnd = top.length ? Date.now() + settings.roundMin * 60_000 : 0; warned = false;

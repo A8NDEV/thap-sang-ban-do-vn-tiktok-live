@@ -8,16 +8,19 @@ import { setupThemeBg, registerStyle } from './theme-fx.js';
 import { P } from './map.js';
 
 const THEMES = ['mac-dinh', 'son-mai', 'aurora', 'neon', 'hoi-an', 'radar', 'tet', 'giay-co'];
-const Q = new URLSearchParams(location.search), forced = Q.get('theme'), forced3d = Q.get('map3d');
+const Q = new URLSearchParams(location.search), forced = Q.get('theme'), forced3d = Q.get('map3d'), forcedLite = Q.get('lite'), forcedZoom = Q.get('zoom') ?? Q.get('cam');
 const RETRY = 20000;
-let cur = '', want = 'mac-dinh', lite = false, first = true, busy = false, retryT = 0, n = 0;
+let cur = '', want = 'mac-dinh', lite = false, camZoom = false, first = true, busy = false, retryT = 0, n = 0;
 const loaded = { 'mac-dinh': Promise.resolve() }, failAt = {};
 export const isLite = () => lite;
+export const isCamZoom = () => (forcedZoom !== null ? (forcedZoom === '1' || forcedZoom === 'true') : camZoom);
 export const themeNow = () => cur;
 
 export function applyLook(look = {}){
   want = THEMES.includes(forced) ? forced : THEMES.includes(look.theme) ? look.theme : 'mac-dinh';
-  if (!!look.lite !== lite) { lite = !!look.lite; document.body.classList.toggle('lite', lite); }
+  const wantLite = forcedLite !== null ? forcedLite === '1' : !!look.lite;
+  if (wantLite !== lite) { lite = wantLite; document.body.classList.toggle('lite', lite); }
+  if (look.camZoom !== undefined) camZoom = !!look.camZoom;
   // style bảng thống kê (cột phải + câu đố) chọn riêng; ?board=khung-vang để ép (xem thử)
   const board = new URLSearchParams(location.search).get('board') || look.board || 'theo-style';
   if (document.documentElement.dataset.board !== board) document.documentElement.dataset.board = board;

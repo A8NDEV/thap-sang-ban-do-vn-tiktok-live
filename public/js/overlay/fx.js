@@ -3,9 +3,12 @@
 import { $, avatar } from './util.js';
 import { P } from './map.js';
 import { getState } from './render.js';
-import { isLite, launchLanternFestival } from './theme.js';
+import { isLite, isCamZoom, launchLanternFestival } from './theme.js';
+import { isSoftZoom, softApply } from './fx-camera.js';
+import { softScale } from './fx-camera-logic.js';
 import { stagePt, cardPt, themeTravel, themeArrive, themeNation } from './theme-fx.js';
 import { launchFirework, launchFireworkCluster, launchMassiveFireworks, screenShake, dragonSparkles } from './particles.js';
+import { goldMeteors } from './fx-meteor.js';
 
 function addFx(cls, ten, txt, life, dy = 0){
   const v = P[ten]; if (!v) return;
@@ -28,52 +31,104 @@ export function island(k){ const el = $(k === 'hs' ? '#islHS' : '#islTS'); el.cl
 
 /* ---------- camera: lia tới tỉnh vừa thắp đèn / tặng quà, nháy sáng, rồi lùi lại ---------- */
 const BOX = { w: 738, h: 1552, top: 232 };
-const camQ = []; let camBusy = false, camHome = null, tourT = null, tourI = 0;
+const camQ = []; let camBusy = false, camHome = null, tourT = null, tourI = 0, curProv = null, curK = 1;
 function camTo(x, y, k, idle = false){
   const cam = $('#cam');
+  if (!cam) return;
   cam.classList.toggle('idle', idle);
-  if (k === 1) { cam.style.transform = ''; return; }
+  curK = k || 1;
+  if (!k || k <= 1.02) { if (isSoftZoom()) softApply(cam, 0, 0, 1); else cam.style.transform = ''; return; }
   let tx = BOX.w / 2 - k * x, ty = BOX.top + BOX.h / 2 - k * y;
   tx = Math.min(0, Math.max(BOX.w - 740 * k, tx));                                 // không lia ra ngoài vùng bản đồ
   ty = Math.min(BOX.top - 240 * k, Math.max(BOX.top + BOX.h - 1790 * k, ty));
-  cam.style.transform = `translate(${tx}px,${ty}px) scale(${k})`;
+  if (isSoftZoom()) softApply(cam, tx, ty, k); else cam.style.transform = `translate3d(${tx.toFixed(1)}px,${ty.toFixed(1)}px,0) scale(${k.toFixed(2)})`;
 }
 // lúc rảnh: camera tự bay chậm khắp Việt Nam (toàn cảnh → Bắc → Trung → Nam → tỉnh dẫn đầu → tỉnh vừa sáng…)
-const TOUR = [() => [0, 0, 1], () => [330, 470, 1.55], () => [420, 760, 1.35], () => [560, 1080, 1.5], () => [560, 1350, 1.45], () => [420, 1560, 1.6], () => [0, 0, 1],
-  () => { const t = getState()?.round.top[0]?.prov; return t && P[t] ? [P[t].cx, P[t].cy, 1.9] : [370, 1000, 1.15]; },
-  () => [360, 900, 1.12],
-  () => { const s = getState(), L = s ? Object.entries(s.lit).sort((a, b) => b[1].at - a[1].at)[0] : null; return L && P[L[0]] ? [P[L[0]].cx, P[L[0]].cy, 1.8] : [480, 1450, 1.4]; }];
+const TOUR = [() => [0, 0, 1], () => [330, 470, 1.3], () => [420, 760, 1.25], () => [560, 1080, 1.28], () => [560, 1350, 1.26], () => [420, 1560, 1.32], () => [0, 0, 1],
+  () => { const t = getState()?.round.top[0]?.prov; return t && P[t] ? [P[t].cx, P[t].cy, 1.35] : [370, 1000, 1.12]; },
+  () => [360, 900, 1.1],
+  () => { const s = getState(), L = s ? Object.entries(s.lit).sort((a, b) => b[1].at - a[1].at)[0] : null; return L && P[L[0]] ? [P[L[0]].cx, P[L[0]].cy, 1.32] : [480, 1450, 1.22]; }];
 function tour(){
   clearTimeout(tourT);
-  if (camBusy) return;
+  if (camBusy || !isCamZoom()) return;
   const [x, y, k] = TOUR[tourI++ % TOUR.length]();
   camTo(x, y, k, true);
-  tourT = setTimeout(tour, 8000);
+  tourT = setTimeout(tour, 12000);
 }
-export function startTour(){ setTimeout(tour, 1500); }
+export function startTour(){ if (new URLSearchParams(location.search).get('tour') === '1') setTimeout(tour, 3000); }
 export function shot(ev){ if (camQ.length >= 6) camQ.splice(0, camQ.length - 5); camQ.push(ev); if (!camBusy) nextShot(); }
 function nextShot(){
   const ev = camQ.shift();
-  if (!ev) { camBusy = false; clearTimeout(camHome); camHome = setTimeout(tour, 600); return; }
+  if (!ev) {
+    camBusy = false;
+    clearTimeout(camHome);
+    if (curK > 1.02) camTo(0, 0, 1);
+    curProv = null;
+    return;
+  }
   camBusy = true; clearTimeout(camHome); clearTimeout(tourT);
   const v = P[ev.prov]; if (!v) return nextShot();
-  const k = v.size === 'sm' ? 3 : v.size === 'md' ? 2.5 : 2.1;
-  camTo(v.cx, v.cy, ev.hold ? Math.min(3.6, k * 1.3) : k);   // quà "Camera": lia sát hơn, giữ lâu hơn
-  const hold = ev.hold || (camQ.length > 2 ? 1700 : 2600);
-  const useComet = ev.comet && !isLite(), fly = useComet ? 620 : 0;
-  if (useComet) setTimeout(() => { const to = stagePt(ev.prov), from = cardPt(); if (to && from) themeTravel(from, to); }, 750);
+
+  const soft = isSoftZoom(); const zooming = soft ? !!ev.big : isCamZoom();
+  const isSameProv = (curProv === ev.prov && curK > 1.3);
+  curProv = ev.prov;
+
+  // Zoom cận cảnh rõ nét: tỉnh nhỏ 2.22x, vừa 1.95x, lớn 1.72x (quà lớn hold: x1.12 tới 2.45x)
+  const baseK = v.size === 'sm' ? 2.22 : v.size === 'md' ? 1.95 : 1.72;
+  const targetK = zooming ? (soft ? softScale(v.size) : ev.hold ? Math.min(2.45, baseK * 1.12) : baseK) : 1;
+
+  if (zooming) {
+    camTo(v.cx, v.cy, targetK);
+  } else if (!soft) {
+    camTo(0, 0, 1);   // zoom nhẹ: sự kiện thường giữ nguyên camera, không lùi về giữa chừng
+  }
+
+  const hold = ev.hold || (camQ.length > 2 ? 1600 : 2500);
+  const useComet = ev.comet && !isLite(), fly = useComet ? 350 : 0;
+  // Cùng tỉnh đã zoom sẵn -> không cần chờ camera di chuyển
+  const startDelay = zooming ? (isSameProv ? 60 : 550 + fly) : 50;
+
+  if (useComet) {
+    setTimeout(() => {
+      const to = stagePt(ev.prov), from = cardPt();
+      if (to && from) themeTravel(from, to);
+    }, 80);
+  }
+
   setTimeout(() => {
-    flash(ev.prov); themeArrive(ev.prov, ev.big); addFx('focus', ev.prov, '', 2500); ripple(ev.prov, ev.big ? 3 : 2);
-    addFx('camTag', ev.prov, ev.tag, 2700, -44);
+    flash(ev.prov);
+    themeArrive(ev.prov, ev.big);
+    addFx('focus', ev.prov, '', 2200);
+    ripple(ev.prov, ev.big ? 3 : 2);
+    addFx('camTag', ev.prov, ev.tag, 2800, -48);
     if (ev.plus) plus(ev.prov, ev.plus);
     ev.fx?.();
-    const m = P[ev.prov].mk; if (m) { m.classList.remove('pop'); void m.offsetWidth; m.classList.add('pop'); }
-  }, 750 + fly);
-  setTimeout(nextShot, 750 + fly + hold);
+    const m = P[ev.prov].mk;
+    if (m) { m.classList.remove('pop'); void m.offsetWidth; m.classList.add('pop'); }
+  }, startDelay);
+
+  // Kết thúc lượt xem tỉnh hiện tại:
+  setTimeout(() => {
+    if (camQ.length === 0) {
+      // Hết hàng đợi: lùi camera êm dịu về toàn cảnh 100%
+      if (zooming) camTo(0, 0, 1);
+      setTimeout(nextShot, zooming ? 1700 : 80);
+    } else {
+      const nextEv = camQ[0];
+      if (!soft && nextEv && nextEv.prov !== curProv && zooming) {
+        // Tỉnh tiếp theo là tỉnh khác: nâng camera lên độ cao flycam tổng quan (1.25x) trong 650ms trước khi lướt vào tỉnh mới
+        // Loại bỏ hoàn toàn cảm giác "cắt khung hình / nhảy cóc" khi bay ngang cả nước ở độ phóng to cao
+        camTo(v.cx, v.cy, 1.25);
+        setTimeout(nextShot, 650);
+      } else {
+        nextShot();
+      }
+    }
+  }, startDelay + hold);
 }
 // cả nước rực sáng: camera lùi toàn cảnh, đèn sáng lan từ Bắc vào Nam 3 lượt
 export function nationWide(){
-  camQ.length = 0; clearTimeout(tourT); camTo(0, 0, 1); clearTimeout(camHome); camHome = setTimeout(tour, 11000);
+  camQ.length = 0; clearTimeout(tourT); curProv = null; camTo(0, 0, 1); clearTimeout(camHome); camHome = setTimeout(tour, 11000);
   themeNation();
   launchLanternFestival();
   launchMassiveFireworks();
@@ -124,12 +179,12 @@ export function mapFireworks(){
 
 // act: hành động chủ kênh gán cho quà (Sàn Quẩy-style); không gán thì hiệu ứng theo mức xu
 export function giftFx(prov, gift, coins, act = ''){
-  if (act === 'rong') dragon();
+  if (act === 'rong') goldMeteors(prov, 100);   // rồng emoji cũ đã thay bằng mưa sao băng vàng
   if (act === 'phaohoa') mapFireworks();
   if (act === 'hoahong' && P[prov]) return spawn(prov, '🌹', 26, 'fall', 2600);
   if (act === 'tim' && P[prov]) { spawn(prov, '💛', 22, 'burst', 1500, 55); spawn(prov, '💖', 12, 'rise', 2200); return; }
   if (act && act !== 'camera') return;
-  if (coins >= 100) dragon();
+  if (coins >= 100) goldMeteors(prov, coins);
   if (!prov || !P[prov]) return;
 
   // Cột sáng hoàng kim & Sóng xung kích khi tặng quà từ 10 xu trở lên

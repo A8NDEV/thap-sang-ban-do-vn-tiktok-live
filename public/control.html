@@ -164,7 +164,11 @@
       </div>
       <input type="hidden" data-k="boardStyle" id="boardVal">
       <label><span>🧊 Bản đồ 3D <small class="dim">(nghiêng sâu, tỉnh nổi khối cao — dùng được với mọi style)</small></span><input type="checkbox" data-k="map3d"></label>
+      <label><span>🎥 Lia camera zoom tỉnh <small class="dim">(Bật: lướt nhẹ Flycam · Tắt: giữ toàn cảnh cố định 100%)</small></span><input type="checkbox" data-k="camZoom"></label>
       <label><span>Hiệu ứng nhẹ <small class="dim">(máy yếu / OBS cũ: tắt nền động, kính mờ, sao chổi)</small></span><input type="checkbox" data-k="fxLite"></label>
+      <label><span>🔍 Kính lúp khi có quà lớn <small class="dim">(ô tròn phóng to tỉnh nhận quà, bản đồ đứng yên)</small></span><input type="checkbox" data-k="lensOn"></label>
+      <label><span>🎬 Zoom nhẹ mượt <small class="dim">(1,15–1,3 lần, chuyển động êm; thay cho zoom mạnh ở trên)</small></span><input type="checkbox" data-k="softZoom"></label>
+      <label><span>📊 Hiện FPS trên overlay <small class="dim">(để đo máy; nhớ tắt khi live thật)</small></span><input type="checkbox" data-k="showFps"></label>
     </section>
     <section>
       <h2>🧪 Khách thử (không cần live)</h2>
@@ -177,6 +181,10 @@
   <!-- ===== 3. LUẬT CHƠI ===== -->
   <div class="page" data-page="luat-choi">
     <section>
+      <h2>🛡️ Tránh bị TikTok phạt chèo kéo quà</h2>
+      <label><span>📣 MC kêu gọi tặng quà <small class="dim">(BẬT: kịch bản như cũ — MC, bảng xu→điểm và quà giả hoạt động bình thường, dễ bị TikTok phạt "chèo kéo quà". TẮT: bỏ câu kêu gọi quà, ẩn bảng xu, tắt người xem/quà giả; MC vẫn nói dày như cũ nhưng chuyển sang kêu gọi thả tim, follow, bình luận, chia sẻ live)</small></span><input type="checkbox" data-k="mcGiftCta"></label>
+    </section>
+    <section>
       <h2>Vòng đua & điểm</h2>
       <label><span>Mỗi vòng đua (phút)</span><input type="number" data-k="roundMin"></label>
       <label><span>Điểm mỗi comment (tối đa 2 giây/lần)</span><input type="number" data-k="commentPts"></label>
@@ -186,6 +194,20 @@
       <label><span>Tặng đủ (xu, cộng dồn cả buổi) → cả nước rực sáng</span><input type="number" data-k="fullCoins"></label>
       <label><span>Điểm thưởng khi thắp sáng cả nước</span><input type="number" data-k="fullPts"></label>
       <label><span>Vắng hoạt động quá (giờ) → tự bắt đầu bản đồ mới (0 = không)</span><input type="number" data-k="newSessionHours"></label>
+    </section>
+    <section>
+      <h2>🏅 Cấp độ & vinh danh <small>tôn vinh người tặng quà</small></h2>
+      <label><span>Bật cấp độ + khung ảnh (Đồng / Bạc / Vàng / Kim cương)</span><input type="checkbox" data-k="levelOn"></label>
+      <label class="wide"><span>Mốc lên cấp <small>(xu cộng dồn cả buổi: Đồng,Bạc,Vàng,Kim cương — 4 số tăng dần)</small></span><input type="text" data-k="levelTiers"></label>
+      <label><span>Bật cảnh "Vượt hạng" khi có người vượt lên bảng tặng quà</span><input type="checkbox" data-k="overtakeOn"></label>
+    </section>
+    <section>
+      <h2>🎯 Nhiệm vụ cả phòng <small>comment tên một tỉnh đủ số lần trong thời gian ngắn</small></h2>
+      <label><span>Bật nhiệm vụ tự động</span><input type="checkbox" data-k="missionOn"></label>
+      <label><span>Mỗi bao nhiêu phút một nhiệm vụ</span><input type="number" data-k="missionEveryMin"></label>
+      <label><span>Thời gian mỗi nhiệm vụ (giây)</span><input type="number" data-k="missionSec"></label>
+      <label><span>Cần bao nhiêu lượt comment</span><input type="number" data-k="missionTarget"></label>
+      <label><span>Điểm thưởng cho quê khi hoàn thành</span><input type="number" data-k="missionPts"></label>
     </section>
     <section>
       <h2>⚔️ Đại chiến <small>2 tỉnh dẫn đầu đối đầu</small></h2>

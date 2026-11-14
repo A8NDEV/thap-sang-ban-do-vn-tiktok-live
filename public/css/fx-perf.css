@@ -5,3 +5,12 @@
 
 html[data-q="1"] .sea-wave, html[data-q="1"] .sea-coast, html[data-q="2"] .sea-wave, html[data-q="2"] .sea-coast { display: none; }
 html[data-q="2"] #tilt { animation: none; }
+
+/* Tối ưu triệt để khi máy yếu hoặc bật chế độ lite (?lite=1 hoặc tích fxLite trong control): */
+body.lite #tilt { animation: none !important; }
+body.lite .sea-wave, body.lite .sea-coast, body.lite .sea-shimmer { display: none !important; }
+body.lite #twinkle { display: none !important; }
+body.lite #sideG { filter: none !important; }
+body.lite #litG { filter: drop-shadow(0 0 5px rgba(255,185,60,.6)) !important; }
+body.lite #topG { filter: none !important; }
+body.lite .focus { display: none !important; }
