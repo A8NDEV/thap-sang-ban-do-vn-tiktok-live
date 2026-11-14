@@ -16,6 +16,7 @@ import { showLens, setLensOn } from './fx-lens.js';
 import { setSoftZoom } from './fx-camera.js';
 import { showLevelUp, showOvertake, applyBannerFrame } from './fx-donors.js';
 import { renderMission, missionWin, missionEnd } from './fx-mission.js';
+import { renderHearts, heartMilestone, showShare, renderPoll, pollEnd } from './fx-engage.js';
 
 setupStage();
 initParticles($('#fxCanvas'));
@@ -30,11 +31,14 @@ startAmbient();
 startThemeAmbient();
 
 const handlers = {
-  state: s => { render(s); setFpsMeter(!!s.look?.showFps); setLensOn(s.look?.lensOn !== false); setSoftZoom(!!s.look?.softZoom); renderMission(s.mission); },
+  state: s => { render(s); setFpsMeter(!!s.look?.showFps); setLensOn(s.look?.lensOn !== false); setSoftZoom(!!s.look?.softZoom); renderMission(s.mission); renderHearts(s.hearts); renderPoll(s.poll); },
   levelUp: showLevelUp,
   overtake: showOvertake,
   missionWin,
   missionEnd,
+  heart: heartMilestone,
+  share: showShare,
+  pollEnd,
   light: m => {
     registerCombo(m.prov);
     if (m.fresh) {
@@ -52,6 +56,7 @@ const handlers = {
     }
   },
   follow: m => {
+    if (m.prov) lanternRise(m.prov);
     playSfx('chime');
     if (m.prov) {
       shot({
