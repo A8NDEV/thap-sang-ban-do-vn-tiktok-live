@@ -11,6 +11,7 @@ import { playVoice, stopVoice, setMusic, playSfx, MUTE } from './audio.js';
 import { initParticles, screenShake } from './particles.js';
 import { registerCombo } from './combo.js';
 import { lanternRise, bigGiftCinema } from './fx-cinema.js';
+import { setFpsMeter } from './fx-perf.js';
 
 setupStage();
 initParticles($('#fxCanvas'));
@@ -25,7 +26,7 @@ startAmbient();
 startThemeAmbient();
 
 const handlers = {
-  state: render,
+  state: s => { render(s); setFpsMeter(!!s.look?.showFps); },
   light: m => {
     registerCombo(m.prov);
     if (m.fresh) {

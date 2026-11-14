@@ -58,9 +58,16 @@ export function qualityLevel() {
   return quality.level();
 }
 
-// Bộ đo FPS: chỉ chạy khi có ?fps=1; nếu không thì không tạo rAF/timer nào.
+// Bộ đo FPS: bật/tắt bằng ô "Hiện FPS" trong bảng điều khiển (look.showFps do máy chủ gửi qua trạng thái);
+// ?fps=1 trên URL vẫn ép bật (dùng khi mở overlay thử). Tắt thì không có rAF/timer nào.
+let meterEl = null;
+let meterRaf = 0;
+let urlForce = false;
+
 function startFpsMeter() {
+  if (meterEl || typeof document === 'undefined' || !document.body) return;
   const el = document.createElement('div');
+  meterEl = el;
   el.id = 'fxFps';
   el.style.cssText =
     'position:fixed;top:0;left:0;z-index:9999;padding:4px 10px;' +
@@ -71,6 +78,7 @@ function startFpsMeter() {
   let frames = 0;
   let last = performance.now();
   function tick(now) {
+    if (meterEl !== el) return; // đã tắt
     frames++;
     const elapsed = now - last;
     if (elapsed >= 500) {
@@ -78,13 +86,28 @@ function startFpsMeter() {
       frames = 0;
       last = now;
     }
-    requestAnimationFrame(tick);
+    meterRaf = requestAnimationFrame(tick);
   }
-  requestAnimationFrame(tick);
+  meterRaf = requestAnimationFrame(tick);
+}
+
+function stopFpsMeter() {
+  if (meterRaf) cancelAnimationFrame(meterRaf);
+  meterRaf = 0;
+  if (meterEl) meterEl.remove();
+  meterEl = null;
+}
+
+// Gọi mỗi lần máy chủ gửi trạng thái: on = cài đặt "Hiện FPS" trong bảng điều khiển.
+export function setFpsMeter(on) {
+  if (urlForce || typeof document === 'undefined') return;
+  if (on) startFpsMeter();
+  else stopFpsMeter();
 }
 
 if (typeof location !== 'undefined' && typeof document !== 'undefined'
     && new URLSearchParams(location.search).get('fps') === '1') {
+  urlForce = true;
   if (document.body) startFpsMeter();
   else document.addEventListener('DOMContentLoaded', startFpsMeter, { once: true });
 }

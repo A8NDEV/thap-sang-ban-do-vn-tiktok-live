@@ -8,6 +8,6 @@ Da go tinh nang tu cap nhat (no chep de ma nguon). Muon len ban moi thi tu tai v
 Giong MC doc tot nhat khi may co Python + edge-tts:  pip install -U edge-tts
 
 DO FPS THAT TRONG LIVE STUDIO / OBS:
-Them ?fps=1 vao cuoi duong dan overlay, vi du http://localhost:3002/overlay.html?fps=1 - goc tren trai man hinh hien FPS va muc chat luong (vi du: FPS 58 - Q0).
+Vao bang dieu khien, tab giao dien, tick o "Hien FPS tren overlay" - goc tren trai man hinh hien FPS va muc chat luong (vi du: FPS 58 - Q0). (Cach khac: them ?fps=1 vao cuoi duong dan overlay khi mo thu.)
 Q0 = day du hieu ung. Q1 = bot cac lop anh sang nen. Q2 = nhe nhat (dung ca chuyen dong lac nhe cua ban do). Tool tu ha muc khi may bi giat va tu tang lai khi on dinh; khong can chinh tay.
-Do vao luc co nhieu qua dong thoi (luc nang nhat) roi gui lai so FPS de chinh nguong. NHO BO ?fps=1 truoc khi live that.
+Do vao luc co nhieu qua dong thoi (luc nang nhat) roi gui lai so FPS de chinh nguong. NHO BO TICK "Hien FPS tren overlay" truoc khi live that.
