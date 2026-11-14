@@ -1,0 +1,38 @@
+/* Kính lúp quà lớn (fx-lens.js). Chỉ transform + opacity được animate; viền/bóng là tĩnh, không filter. */
+/* Vị trí (hệ toạ độ #stage 1080x1920): dưới #banner (y 780-1090), phía trái, vùng biển/Lào-Campuchia. */
+.lens{
+  position:absolute; left:45px; top:1125px; width:340px; z-index:29; /* dưới #banner (30), trên fxCanvas (24) */
+  text-align:center; pointer-events:none; opacity:0;
+  transform-origin:50% 150px; will-change:transform,opacity;
+  font-family:'Be Vietnam Pro','Noto Serif',system-ui,sans-serif;
+}
+.lens-win{
+  position:relative; width:300px; height:300px; margin:0 auto; border-radius:50%; overflow:hidden;
+  background:radial-gradient(circle at 50% 38%, #1d3a6b 0%, #0b1a3a 70%, #060e24 100%);
+  border:6px solid #ffd25c;
+  box-shadow:0 0 0 3px rgba(255,160,30,.55), 0 0 28px rgba(255,170,40,.55), inset 0 0 30px rgba(0,0,0,.55);
+  pointer-events:none;
+}
+.lens-win svg{ display:block; width:100%; height:100%; pointer-events:none; }
+.lens-ring{
+  position:absolute; left:20px; top:0; width:300px; height:300px; border-radius:50%;
+  border:3px solid rgba(255,214,110,.9); box-sizing:border-box;
+  opacity:0; will-change:transform,opacity; pointer-events:none;
+}
+.lens-av{
+  position:relative; width:72px; height:72px; margin:-36px auto 0; border-radius:50%;
+  border:4px solid #fff3c4; background:#335 center/cover; box-sizing:border-box;
+  display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:900; color:#fff;
+  box-shadow:0 0 0 3px #ffa000, 0 4px 14px rgba(0,0,0,.65);
+  pointer-events:none;
+}
+.lens-name{
+  margin:10px auto 0; max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-size:30px; font-weight:900; line-height:1.2; color:#fff4d6;
+  text-shadow:0 2px 0 #7a3b00, 0 0 14px rgba(255,170,40,.65), 0 3px 10px rgba(0,0,0,.7);
+}
+.lens-gift{
+  margin:4px auto 0; max-width:340px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-size:24px; font-weight:800; line-height:1.2; color:#ffd25c;
+  text-shadow:0 2px 0 #8a3f00, 0 3px 10px rgba(0,0,0,.7);
+}
