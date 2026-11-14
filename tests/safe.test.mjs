@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { effectiveIdleGapSec, ctaAllowed, isGiftSolicitation, isFollowLikeCta, filterIdleLines, createSpokenMemory } from '../src/domain/safe.mjs';
+import { isGiftSolicitation, filterIdleLines, createSpokenMemory } from '../src/domain/safe.mjs';
 import { INTERACT_CATS, INTERACT_LINES, allInteractLines, createInteractPicker } from '../src/audio/mc-interact.mjs';
 import { idleLine, resetIdleMemory, staticLines } from '../src/audio/mc.mjs';
 import { settings } from '../src/domain/settings.mjs';
@@ -32,29 +32,6 @@ const REAL_SOLICITING = [
 ];
 const THANKS = ['Cảm ơn Nam đã tặng Hoa hồng!', 'Cộng 30 điểm cho Hà Nội.', 'ơi, cảm ơn bạn đã tặng quà mã 8825!', 'Đại gia An chơi lớn quá!', 'Woa, cảm ơn Lan đã tặng Tim ngón tay!', 'Cảm ơn bà con đã ủng hộ.'];
 
-test('effectiveIdleGapSec', () => {
-  assert.equal(effectiveIdleGapSec(1, true), 15);
-  assert.equal(effectiveIdleGapSec(14, true), 15);
-  assert.equal(effectiveIdleGapSec(15, true), 15);
-  assert.equal(effectiveIdleGapSec(60, true), 60);
-  for (const bad of [NaN, undefined, null, 'x', Infinity]) assert.equal(effectiveIdleGapSec(bad, true), 15);
-  assert.equal(effectiveIdleGapSec(1, false), 1);
-  assert.equal(effectiveIdleGapSec(0, false), 0);
-  assert.equal(effectiveIdleGapSec(30, false), 30);
-  for (const bad of [NaN, undefined, null, 'x', Infinity]) assert.equal(effectiveIdleGapSec(bad, false), 1);
-});
-
-test('ctaAllowed: 4 phút mặc định, 75 giây tuỳ chỉnh, bản thường luôn cho phép', () => {
-  assert.equal(ctaAllowed(1000, 1001, false), true);
-  assert.equal(ctaAllowed(0, 5, true), true);
-  assert.equal(ctaAllowed(undefined, 5, true), true);
-  assert.equal(ctaAllowed(1000, 1000 + 239_999, true), false);
-  assert.equal(ctaAllowed(1000, 1000 + 240_000, true), true);
-  assert.equal(ctaAllowed(10_000, 5_000, true), false);      // lastAt ở tương lai
-  assert.equal(ctaAllowed(10_000, 10_000 + 74_999, true, 75_000), false);
-  assert.equal(ctaAllowed(10_000, 10_000 + 75_000, true, 75_000), true);
-});
-
 test('isGiftSolicitation bắt mọi câu kêu gọi thật, giữ câu cảm ơn', () => {
   for (const l of REAL_SOLICITING) assert.equal(isGiftSolicitation(l), true, l);
   for (const l of THANKS) assert.equal(isGiftSolicitation(l), false, l);
@@ -74,13 +51,6 @@ test('filterIdleLines', () => {
   assert.deepEqual(filterIdleLines(undefined, true), []);
 });
 
-test('isFollowLikeCta', () => {
-  assert.equal(isFollowLikeCta('Bấm Follow kênh ngay nha'), true);
-  assert.equal(isFollowLikeCta('Bấm theo dõi kênh nhé'), true);
-  assert.equal(isFollowLikeCta('Bà con thả tim giúp mình'), true);
-  assert.equal(isFollowLikeCta('Quê bạn đã sáng đèn chưa?'), false);
-});
-
 test('createSpokenMemory: không lặp trong cửa sổ, tự dọn khi quá hạn', () => {
   const m = createSpokenMemory(1000);
   assert.equal(m.recent('a', 0), false);
@@ -88,14 +58,17 @@ test('createSpokenMemory: không lặp trong cửa sổ, tự dọn khi quá h�
   assert.equal(m.recent('a', 999), true);
   assert.equal(m.recent('a', 1000), false);
   assert.equal(m.size(), 0);
+  m.mark('b', 5000);
+  assert.equal(m.at('b', 5500), 5000);
+  assert.equal(m.at('zzz', 5500), undefined);
 });
 
 /* ---------- câu mời tương tác (mc-interact) ---------- */
-test('pool tương tác: 4 nhóm, ≥ 10 câu, không trùng, không chèo kéo quà', () => {
+test('pool tương tác: 4 nhóm, ≥ 12 câu, không trùng, không chèo kéo quà', () => {
   assert.deepEqual(INTERACT_CATS, ['tim', 'follow', 'comment', 'share']);
   const all = allInteractLines();
   assert.equal(new Set(all).size, all.length, 'có câu trùng');
-  for (const c of INTERACT_CATS) assert.ok(INTERACT_LINES[c].length >= 10, c);
+  for (const c of INTERACT_CATS) assert.ok(INTERACT_LINES[c].length >= 12, c);
   for (const l of all) {
     assert.equal(isGiftSolicitation(l), false, l);
     assert.doesNotMatch(l, /quà|\bxu\b|tặng|kim cương|tiền/iu, l);
@@ -128,28 +101,24 @@ function seedState(){
 }
 const textOf = p => (p && typeof p === 'object' ? p.t : p);
 
-test('mc idleLine: tắt mcGiftCta (an toàn) → không câu nào chèo kéo quà, mời tương tác cách nhau ≥ 75 giây', () => {
+test('mc idleLine: an toàn → không câu chèo kéo quà, câu mời tương tác thế chỗ câu quà với tỉ lệ cũ, không im lặng', () => {
   seedState(); settings.mcGiftCta = false; resetIdleMemory();
   const interact = new Set(allInteractLines());
-  let n = 0, said = 0;
-  for (let i = 0; i < 400; i++) {
+  let inFirst16 = 0;
+  for (let i = 0; i < 1500; i++) {
     const parts = idleLine();
-    if (!parts) continue;
-    said++;
-    for (const p of parts) {
-      assert.equal(isGiftSolicitation(textOf(p)), false, textOf(p));
-      if (interact.has(textOf(p))) n++;
-    }
+    assert.ok(parts, 'MC không được im lặng (lần ' + i + ')');
+    for (const p of parts) assert.equal(isGiftSolicitation(textOf(p)), false, textOf(p));
+    if (i < 16 && parts.some(p => interact.has(textOf(p)))) inFirst16++;
   }
-  assert.ok(said > 0);
-  assert.equal(n, 1, 'trong vài mili-giây chỉ được 1 câu mời tương tác');
+  assert.ok(inFirst16 >= 4 && inFirst16 <= 10, 'số câu mời tương tác trong 16 câu đầu: ' + inFirst16);
   resetIdleMemory();
 });
 
-test('mc idleLine: không lặp lại một câu trong 30 phút (an toàn)', () => {
+test('mc idleLine: 40 câu đầu không câu nào lặp (cửa sổ 30 phút)', () => {
   seedState(); settings.mcGiftCta = false; resetIdleMemory();
   const keys = [];
-  for (let i = 0; i < 300; i++) { const p = idleLine(); if (p) keys.push(p.map(textOf).join(' ')); }
+  for (let i = 0; i < 40; i++) keys.push(idleLine().map(textOf).join(' '));
   assert.equal(new Set(keys).size, keys.length);
   resetIdleMemory();
 });

@@ -12,7 +12,7 @@ import { say, isBusy, lastSpokenUntil } from './tts-queue.mjs';
 import { duelStaticLines, duelIdleLine, duelView } from '../domain/duel.mjs';
 import { quizDue, startQuiz, quizIdleLine, quizStaticLines } from '../domain/quiz.mjs';
 import { FAKE_TTS, synthesizeTTS, ttsOpts, cacheName, cachedFile, writeCache, stripOi } from './tts-engine.mjs';
-import { effectiveIdleGapSec, ctaAllowed, isFollowLikeCta, isGiftSolicitation, filterIdleLines, createSpokenMemory } from '../domain/safe.mjs';
+import { isGiftSolicitation, filterIdleLines, createSpokenMemory } from '../domain/safe.mjs';
 import { createInteractPicker, allInteractLines } from './mc-interact.mjs';
 
 const bags = {};
@@ -74,44 +74,40 @@ const INVITE = [
 const CALLOUT = ['ơi, quê bạn ở đâu? Comment tên tỉnh để thắp sáng quê mình nhé!', 'ơi, mời bạn thắp một ngọn đèn cho quê hương, comment tên tỉnh là được.', 'ơi, quê bạn chưa sáng đèn đâu, comment tên quê đi nào!'];
 let idleIdx = 0;
 // Khi TẮT "MC kêu gọi tặng quà" (settings.mcGiftCta = false → chế độ an toàn): không đọc câu kêu gọi / hứa thưởng quà;
-// các suất 'donate' đổi thành câu mời thả tim / follow / bình luận / chia sẻ (cách nhau ≥ 75 giây); một câu không lặp lại trong 30 phút.
-// Bật mcGiftCta → hành vi y như trước.
+// các suất 'donate' và 'race' (đúng tỉ lệ cũ) đổi thành câu mời thả tim / follow / bình luận / chia sẻ; nhịp nói giữ nguyên (idleGapSec);
+// một câu không lặp lại trong 30 phút (hết câu mới thì dùng lại câu cũ nhất, không để MC im). Bật mcGiftCta → hành vi y như trước.
 const idleMem = createSpokenMemory(30 * 60_000);
 const interactPicker = createInteractPicker();
-const interactParts = new WeakSet();
-let lastInteractAt = 0;
-export function resetIdleMemory(){ idleMem.clear(); interactPicker.reset(); lastInteractAt = 0; }
+export function resetIdleMemory(){ idleMem.clear(); interactPicker.reset(); }
 const partText = p => (p && typeof p === 'object' ? p.t : p);
 const lineKey = parts => parts.map(partText).join(' ');
 export function idleLine(){
   const safe = !settings.mcGiftCta;
   if (!safe) return pickIdle(false);
   const now = Date.now();
+  let oldest = null;                              // câu cũ nhất trong số câu bị loại vì mới nói < 30 phút
   for (let i = 0; i < 16; i++) {                // thử lần lượt các loại câu cho tới khi gặp câu hợp lệ và chưa nói trong 30 phút
-    const parts = pickIdle(true, now);
-    if (!parts) return null;
+    const parts = pickIdle(true);
+    if (!parts) break;
     if (parts.some(p => isGiftSolicitation(partText(p)))) continue;   // chốt chặn cuối: tuyệt đối không đọc câu chèo kéo quà
-    const key = lineKey(parts);
-    if (idleMem.recent(key, now)) continue;
-    idleMem.mark(key, now);
-    if (interactParts.has(parts)) lastInteractAt = now;
-    return parts;
+    const key = lineKey(parts), at = idleMem.at(key, now);
+    if (at === undefined) { idleMem.mark(key, now); return parts; }
+    if (!oldest || at < oldest.at) oldest = { at, key, parts };
   }
-  return null;                                   // hết câu mới thì im lặng, không lặp
+  if (!oldest) return null;
+  idleMem.mark(oldest.key, now);                 // hết câu mới: dùng lại câu cũ nhất thay vì để MC im
+  return oldest.parts;
 }
-function pickIdle(safe, now = Date.now()){
+function pickIdle(safe){
   const kinds = ['donate', 'race', 'callout', 'unlit', 'donate', 'invite', 'callout', 'lead', 'donate', 'fact', 'topdonor', 'callout', 'donate', 'unlit', 'island', 'invite'];
   for (let k = 0; k < kinds.length; k++) {
-    const k0 = kinds[idleIdx++ % kinds.length], kind = safe && k0 === 'donate' ? 'interact' : k0;
-    if (kind === 'interact') {
-      if (!ctaAllowed(lastInteractAt, now, true, 75_000)) continue;     // hai câu mời tương tác cách nhau ≥ 75 giây
-      const parts = [interactPicker.next().line]; interactParts.add(parts); return parts;
-    }
+    const k0 = kinds[idleIdx++ % kinds.length], kind = safe && (k0 === 'donate' || k0 === 'race') ? 'interact' : k0;
+    if (kind === 'interact') return [interactPicker.next().line];       // thế chỗ câu kêu gọi quà (donate, race) với đúng tỉ lệ cũ
     if (kind === 'donate') return [bagPick('donate', donateLines())];
     if (kind === 'invite') {
-      const pool = filterIdleLines(safe ? INVITE.filter(l => !isFollowLikeCta(l)) : INVITE, safe);   // an toàn: lời mời follow / thả tim đã nằm trong nhóm 'interact'
+      const pool = filterIdleLines(INVITE, safe);
       if (!pool.length) continue;
-      return [bagPick(safe ? 'invite-safe' : 'invite', pool)];
+      return [bagPick('invite', pool)];
     }
     if (kind === 'island') return [ISLAND_IDLE];
     if (kind === 'unlit') {
@@ -127,7 +123,6 @@ function pickIdle(safe, now = Date.now()){
       return [dyn(`Vòng đua ${left ? `còn khoảng ${left} phút` : 'sắp hết giờ'}, ${top[0][0]} đang dẫn đầu với ${top[0][1]} điểm.`), top[1] ? dyn(`${top[1][0]} theo sau với ${top[1][1]} điểm.`) : 'Các quê khác cố lên nào!'];
     }
     if (kind === 'race') {
-      if (safe) continue;       // câu thứ hai "tặng quà kéo quê mình lên nào" là kêu gọi quà
       const top = sortObj(S.pts, 3);
       if (top.length < 2) continue;
       const t = pick(top.slice(1))[0];
@@ -164,9 +159,7 @@ export function startMC(){
     if (quizDue()) return void startQuiz();          // MC rảnh + tới lượt → ra câu đố xen kẽ
     const ql = quizIdleLine();                        // đang đố: để người xem nghĩ (≥ 6 giây), nhắc câu hỏi / khều trả lời
     if (ql) { if (quiet >= 6000) say(ql, { tag: 'idle' }); return; }
-    if (!settings.idleTalk || quiet < effectiveIdleGapSec(settings.idleGapSec, !settings.mcGiftCta) * 1000) return;   // an toàn: nghỉ ≥ 15 giây giữa các câu nói vu vơ (đố / Đại chiến không đổi)
-    const il = idleLine();
-    if (il) say(il, { tag: 'idle' });
+    if (settings.idleTalk) { const il = idleLine(); if (il) say(il, { tag: 'idle' }); }
   }, 300);
 }
 

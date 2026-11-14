@@ -16,6 +16,8 @@ export const INTERACT_LINES = {
     'Tim bay đầy màn hình thì đẹp lắm đó, bà con thả tim cùng mình nha.',
     'Bà con yêu quê hương thì thả tim cái nào, mình cùng nhau thắp sáng bản đồ Việt Nam.',
     'Thả tim cho mình nghe bà con ơi, để đêm nay phòng live thật ấm áp.',
+    'Bà con rảnh tay thì thả tim cho phòng live thêm duyên nha.',
+    'Thả tim đi bà con ơi, mỗi trái tim là một cái ôm gửi tới cả nhà.',
   ],
   follow: [
     'Bà con thấy vui thì bấm Follow kênh nhé, để tối nào cũng gặp lại nhau thắp đèn.',
@@ -29,6 +31,8 @@ export const INTERACT_LINES = {
     'Bấm Follow kênh để cùng cộng đồng thắp đèn mỗi tối, vui lắm bà con ơi.',
     'Bà con bấm Follow để mình biết ai là đồng hương của mình nhé.',
     'Follow kênh nha bà con, mình còn nhiều trò hay như câu đố và đại chiến các quê nữa.',
+    'Đồng hương ơi, chưa theo dõi kênh thì bấm giúp mình một cái nha.',
+    'Bấm Follow để mình nhớ mặt từng đồng hương của kênh nhé bà con.',
   ],
   comment: [
     'Đồng hương ơi, gõ tên tỉnh quê bạn vào phần bình luận là đèn quê mình sáng ngay.',
@@ -42,6 +46,8 @@ export const INTERACT_LINES = {
     'Gõ tên quê vào khung chat để ngọn đèn quê bạn nháy sáng trên bản đồ nhé bà con.',
     'Đồng hương cùng quê thì rủ nhau bình luận tên quê, đèn sẽ sáng rực lên đó.',
     'Chưa kịp bình luận thì bà con gõ tên tỉnh quê mình ngay nhé, mình sẽ đọc tên bà con liền.',
+    'Bà con comment tên quê đi, mình đọc to tên quê bà con lên cho cả phòng nghe nè.',
+    'Quê bạn có đèn sáng chưa? Gõ tên tỉnh vào khung bình luận để kiểm tra nào.',
   ],
   share: [
     'Bà con chia sẻ phiên live này cho bạn bè và đồng hương để cùng vào thắp đèn nhé.',
@@ -55,6 +61,8 @@ export const INTERACT_LINES = {
     'Đồng hương xa quê đừng quên chia sẻ phiên live này cho người thân ở nhà cùng xem nha.',
     'Một lượt chia sẻ của bà con giúp bản đồ sáng nhanh hơn đó, cảm ơn bà con.',
     'Bà con share live này cho bạn bè để cả nhà cùng thắp sáng bản đồ Việt Nam nhé.',
+    'Bà con rủ thêm một người thân cùng vào phòng này bằng nút chia sẻ nha.',
+    'Chia sẻ phiên live này lên trang cá nhân để bạn bè quê mình biết mà ghé vào thắp đèn nhé.',
   ],
 };
 

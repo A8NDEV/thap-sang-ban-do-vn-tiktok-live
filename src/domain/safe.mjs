@@ -1,28 +1,7 @@
 // Chế độ an toàn TikTok: logic thuần (không DOM, không Node API) để tránh bị phạt "chèo kéo quà tặng".
-// Dùng chung cho mc.mjs (câu MC nói lúc vắng), game.mjs và auto-pacing.mjs.
+// Dùng cho mc.mjs (lọc câu MC nói lúc vắng + nhớ câu đã nói). Không đổi nhịp nói: chỉ bỏ câu nhắc quà.
 
-const MIN_SAFE_GAP_SEC = 15;
-const CTA_GAP_MS = 4 * 60_000;
 const NO_REPEAT_MS = 30 * 60_000;
-
-const isNum = n => typeof n === 'number' && Number.isFinite(n);
-
-// Khoảng nghỉ giữa các câu MC nói lúc vắng: an toàn → tối thiểu 15 giây; thường → đúng như cài đặt (sai → 1 giây).
-export function effectiveIdleGapSec(idleGapSec, safe){
-  if (safe) return isNum(idleGapSec) ? Math.max(MIN_SAFE_GAP_SEC, idleGapSec) : MIN_SAFE_GAP_SEC;
-  return isNum(idleGapSec) ? idleGapSec : 1;
-}
-
-// Câu mời follow / thả tim: an toàn → tối đa 1 lần mỗi minGapMs. lastAtMs ở tương lai coi là chưa đủ cách.
-export function ctaAllowed(lastAtMs, nowMs, safe, minGapMs = CTA_GAP_MS){
-  if (!safe) return true;
-  if (!lastAtMs) return true;
-  return nowMs - lastAtMs >= minGapMs;
-}
-
-// Câu mời follow / thả tim (để áp ctaAllowed).
-const CTA_RE = /follow|theo dõi|thả tim|bấm tim|nhấn tim/iu;
-export const isFollowLikeCta = text => CTA_RE.test(String(text ?? '').normalize('NFC'));
 
 // Câu cảm ơn SAU khi tặng: luôn được giữ ("Cảm ơn Nam đã tặng Hoa hồng!").
 const THANKS_RE = /đã tặng/iu;   // "Cảm ơn Nam đã tặng Hoa hồng!", "đã tặng Tim ngón tay!" (đoạn ghép quanh tên người)
@@ -59,6 +38,7 @@ export function createSpokenMemory(windowMs = NO_REPEAT_MS){
   const prune = now => { for (const [k, t] of at) if (!(now - t < windowMs)) at.delete(k); };
   return {
     recent(key, now){ prune(now); return at.has(key); },
+    at(key, now){ prune(now); return at.get(key); },   // thời điểm nói gần nhất (undefined nếu chưa nói / đã quá hạn)
     mark(key, now){ prune(now); at.set(key, now); },
     size: () => at.size,
     clear: () => at.clear(),
