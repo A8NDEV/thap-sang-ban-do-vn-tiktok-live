@@ -1,12 +1,13 @@
 // Camera "zoom nhẹ mượt": không dùng CSS transition, tự làm mượt bằng một vòng rAF duy nhất.
 // Import an toàn trong Node: không đụng DOM/rAF ở mức module.
-import { smoothStep, isSettled, SOFT_HALF_LIFE_MS } from './fx-camera-logic.js';
+import { springStep, isSpringSettled, SOFT_OMEGA, PAN_FRACTION } from './fx-camera-logic.js';
 
 let soft = false;
 let el = null;
 let raf = 0;
 let last = 0;
 let cur = { x: 0, y: 0, s: 1 };
+let vel = { x: 0, y: 0, s: 0 };   // vận tốc: giữ liên tục khi đổi đích (không giật)
 let tgt = { x: 0, y: 0, s: 1 };
 
 export const isSoftZoom = () => soft;
@@ -26,11 +27,14 @@ function frame(t) {
   if (!soft || !el) { last = 0; return; }
   const dt = last ? Math.min(100, t - last) : 16.7;
   last = t;
-  cur.x = smoothStep(cur.x, tgt.x, dt, SOFT_HALF_LIFE_MS);
-  cur.y = smoothStep(cur.y, tgt.y, dt, SOFT_HALF_LIFE_MS);
-  cur.s = smoothStep(cur.s, tgt.s, dt, SOFT_HALF_LIFE_MS);
-  if (isSettled(tgt.x - cur.x, tgt.y - cur.y, tgt.s - cur.s)) {
+  const ax = springStep(cur.x, vel.x, tgt.x, dt, SOFT_OMEGA);
+  const ay = springStep(cur.y, vel.y, tgt.y, dt, SOFT_OMEGA);
+  const as = springStep(cur.s, vel.s, tgt.s, dt, SOFT_OMEGA);
+  cur = { x: ax.x, y: ay.x, s: as.x };
+  vel = { x: ax.v, y: ay.v, s: as.v };
+  if (isSpringSettled(tgt.x - cur.x, tgt.y - cur.y, tgt.s - cur.s, vel.x, vel.y, vel.s)) {
     cur = { ...tgt };
+    vel = { x: 0, y: 0, s: 0 };
     write();
     last = 0;
     return;
@@ -64,8 +68,12 @@ export function softApply(camEl, tx, ty, k) {
     stop();
     el = camEl;
     cur = readCurrent(camEl);
+    vel = { x: 0, y: 0, s: 0 };
   }
   el.style.transition = 'none';
-  tgt = { x: Number.isFinite(tx) ? tx : 0, y: Number.isFinite(ty) ? ty : 0, s: Number.isFinite(k) && k > 0 ? k : 1 };
+  // Zoom nhẹ chỉ dịch một phần quãng đường tới tỉnh (PAN_FRACTION): tỉnh phía nam từng kéo cả bản đồ dịch ~400px.
+  const kk = Number.isFinite(k) && k > 0 ? k : 1;
+  const pan = kk > 1.02 ? PAN_FRACTION : 1;
+  tgt = { x: Number.isFinite(tx) ? tx * pan : 0, y: Number.isFinite(ty) ? ty * pan : 0, s: kk };
   if (!raf) raf = requestAnimationFrame(frame);
 }
