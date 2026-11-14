@@ -11,13 +11,14 @@ if (typeof document !== 'undefined' && !document.getElementById('fx-cinema-css')
   link.id = 'fx-cinema-css';
   link.rel = 'stylesheet';
   link.href = new URL('../../css/fx-cinema.css', import.meta.url).href;
-  document.head.appendChild(link);
+  document.head?.appendChild(link);
 }
 
 const lanternBudget = createBudget(LANTERN_MAX);
 const sceneBudget = createBudget(1);
 
 const rnd = (a, b) => a + Math.random() * (b - a);
+const clip = (s) => Array.from(String(s ?? '')).slice(0, 40).join('');
 
 // Chạy animation và gọi done() đúng một lần: khi finished/cancel hoặc khi hết hạn dự phòng.
 function runOnce(el, keyframes, opts, done) {
@@ -33,21 +34,29 @@ function runOnce(el, keyframes, opts, done) {
 
 function spawn(cls, left, top, keyframes, opts, container) {
   if (!lanternBudget.tryAcquire()) return false;
-  const el = document.createElement(cls === 'cn-lantern' ? 'div' : 'i');
-  el.className = cls;
-  el.style.left = left + 'px';
-  el.style.top = top + 'px';
-  container.appendChild(el);
-  runOnce(el, keyframes, opts, () => { el.remove(); lanternBudget.release(); });
-  return true;
+  let el = null;
+  try {
+    el = document.createElement(cls === 'cn-lantern' ? 'div' : 'i');
+    el.className = cls;
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+    container.appendChild(el);
+    runOnce(el, keyframes, opts, () => { el.remove(); lanternBudget.release(); });
+    return true;
+  } catch {
+    el?.remove();
+    lanternBudget.release();
+    return false;
+  }
 }
 
 // B1: đèn lồng giấy đỏ + tàn lửa vàng bay lên từ tỉnh vừa sáng lần đầu.
 export function lanternRise(prov) {
   try {
     if (isLite()) return;
-    const v = P && P[prov];
-    if (!v) return;
+    if (!P || !Object.hasOwn(P, prov)) return;
+    const v = P[prov];
+    if (!v || !Number.isFinite(v.cx) || !Number.isFinite(v.cy)) return;
     const n = lanternCount(qualityLevel(), true);
     if (n === 0) return;
     const marks = $('#marks');
@@ -95,7 +104,6 @@ export function bigGiftCinema(ev) {
     if (!sceneBudget.tryAcquire()) return;
 
     const dur = tier === 3 ? 4800 : 3200;
-    const q = qualityLevel();
     const els = [];
     let over = false;
     const finish = () => {
@@ -104,13 +112,14 @@ export function bigGiftCinema(ev) {
       for (const e of els) e.remove();
       sceneBudget.release();
     };
+    try {
+    setTimeout(finish, dur + 600);
+    const q = qualityLevel();
     const add = (el) => { els.push(el); stage.appendChild(el); return el; };
     const anims = [];
     const play = (el, kf, opts) => {
       try { anims.push(el.animate(kf, { duration: dur, fill: 'both', ...opts }).finished); } catch { /* bỏ qua */ }
     };
-    setTimeout(finish, dur + 600);
-
     const slideIn = 420 / dur, slideOut = 1 - 520 / dur;
     const bar = (cls, from) => {
       const el = add(Object.assign(document.createElement('div'), { className: 'cn-bar ' + cls }));
@@ -129,19 +138,19 @@ export function bigGiftCinema(ev) {
       const peak = tier === 3 ? 0.35 : 0.26;
       play(rays, [
         { transform: 'rotate(0deg)', opacity: 0 },
-        { offset: 0.2, transform: `rotate(${dur * 0.012}deg)`, opacity: peak },
-        { offset: 0.8, transform: `rotate(${dur * 0.048}deg)`, opacity: peak },
-        { transform: `rotate(${dur * 0.06}deg)`, opacity: 0 },
+        { offset: 0.2, opacity: peak },
+        { offset: 0.8, opacity: peak },
+        { transform: `rotate(${dur * 0.036}deg)`, opacity: 0 },
       ], { easing: 'linear' });
     }
 
     const title = add(Object.assign(document.createElement('div'), { className: 'cn-title' + (tier === 3 ? ' t3' : '') }));
     const l1 = document.createElement('div');
     l1.className = 'cn-name';
-    l1.textContent = String(ev.name ?? '').slice(0, 40);
+    l1.textContent = clip(ev.name);
     const l2 = document.createElement('div');
     l2.className = 'cn-gift';
-    l2.textContent = `${String(ev.gift ?? '').slice(0, 40)} · ${Number(ev.coins).toLocaleString('vi-VN')} xu`;
+    l2.textContent = `${clip(ev.gift)} · ${Number(ev.coins).toLocaleString('vi-VN')} xu`;
     title.append(l1, l2);
     play(title, [
       { transform: 'translate3d(0,0,0) scale(.9)', opacity: 0, easing: 'cubic-bezier(.2,.9,.3,1)' },
@@ -151,5 +160,6 @@ export function bigGiftCinema(ev) {
     ], {});
 
     Promise.allSettled(anims).then(finish);
+    } catch { finish(); }
   } catch { /* hiệu ứng phụ: không bao giờ làm hỏng luồng chính */ }
 }
