@@ -1,0 +1,133 @@
+/* =====================================================================
+   STYLE MÀN HÌNH LIVE — html[data-theme=…] (chọn ở trang điều khiển)
+   mac-dinh: giữ nguyên overlay.css · 7 style còn lại nằm trong gói giao diện (goi-style/ → data/giao-dien.pak, tải sau khi kích hoạt key)
+   Chỉ animate transform / opacity → GPU gánh, nhẹ cho OBS & điện thoại.
+   ===================================================================== */
+
+/* ---------- phần dùng chung mọi style ---------- */
+#themeBg, #twinkle{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+#twinkle i{ position:absolute; border-radius:50%; background:var(--tw, #fff); box-shadow:0 0 6px var(--tw, #fff); opacity:.15; animation:twk 5s ease-in-out infinite; }
+@keyframes twk{ 0%,100%{ opacity:.1; transform:scale(.6); } 50%{ opacity:.9; transform:scale(1.15); } }
+.meteor{ position:absolute; width:180px; height:2.5px; border-radius:2px; transform-origin:0 50%; pointer-events:none;
+  background:linear-gradient(90deg, #fff, var(--meteor, rgba(170,200,255,.8)) 25%, transparent); box-shadow:0 0 8px var(--meteor, #9cf); }
+#veil{ position:absolute; inset:0; z-index:50; pointer-events:none; opacity:0; background:#000; transition:opacity .35s ease; }
+#veil.on{ opacity:1; }
+#scan{ position:absolute; inset:0; z-index:14; pointer-events:none; display:none; }
+/* sao chổi bay từ thẻ "vừa thắp" về tỉnh */
+.cmt{ position:absolute; left:0; top:0; width:130px; height:26px; margin:-13px 0 0 -115px; border-radius:13px; pointer-events:none; will-change:transform;
+  background:linear-gradient(90deg, transparent, var(--cmt, #ffb21c) 55%, #fff 92%); box-shadow:0 0 24px 6px var(--cmt, #ffb21c); }
+.cmt.tail{ width:22px; height:22px; margin:-11px 0 0 -11px; border-radius:50%; background:radial-gradient(circle, #fff 0 25%, var(--cmt, #ffb21c) 60%); opacity:.85; box-shadow:0 0 18px 4px var(--cmt, #ffb21c); }
+/* dòng xếp hạng vừa tăng điểm */
+.row.bump .pt{ animation:bumpPt .7s cubic-bezier(.2,1.6,.4,1); }
+@keyframes bumpPt{ 0%{ transform:scale(1); } 30%{ transform:scale(1.35); } 100%{ transform:scale(1); } }
+.row.bump{ box-shadow:inset 0 0 0 1.5px var(--gold); }
+.row{ transition:box-shadow .4s; }
+/* hiệu ứng nhẹ: bỏ nền động, kính mờ, đung đưa, lấp lánh */
+body.lite #themeBg *, body.lite #twinkle, body.lite #tilt{ animation:none !important; }
+body.lite #twinkle{ display:none; }
+body.lite .card{ backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
+body.clear #themeBg, body.clear #twinkle{ display:none; }
+
+/* lần đầu áp style: không chạy chuyển màu từ style mặc định */
+html.noanim .pv, html.noanim .lb{ transition:none !important; }
+
+/* =====================================================================
+   HẠT HIỆU ỨNG RIÊNG TỪNG STYLE (theme-fx.js)
+   ===================================================================== */
+.tf{ position:absolute; pointer-events:none; will-change:transform,opacity; }
+/* Đêm Vàng */
+.tf.sparkle{ font-size:26px; color:#fff3c4; text-shadow:0 0 8px #ffb21c, 0 0 16px #ff8a00; font-style:normal; }
+/* Sơn Mài: đèn lồng (thân đỏ, chóp vàng, tua), lá vàng, than hồng */
+.tf.lantern{ width:34px; height:42px; border-radius:46% 46% 42% 42%;
+  background:radial-gradient(circle at 50% 45%, #fff2b0 0%, #ffb02e 22%, #e2361a 55%, #8e1206 100%);
+  box-shadow:0 0 22px 6px rgba(255,120,30,.65), inset 0 0 6px rgba(80,0,0,.6); }
+.tf.lantern::before{ content:''; position:absolute; left:6px; right:6px; top:-5px; height:6px; border-radius:2px; background:#f4c542; box-shadow:0 0 4px #f4c542; }
+.tf.lantern::after{ content:''; position:absolute; left:50%; bottom:-13px; width:3px; height:13px; margin-left:-1.5px; background:linear-gradient(#f4c542,#d9481f); border-radius:2px; }
+.tf.lantern.far{ filter:blur(1.5px); opacity:.6; }
+.tf.leaf{ width:14px; height:10px; background:linear-gradient(135deg,#fff3c0,#f4c542 45%,#b8790e); box-shadow:0 0 6px rgba(255,200,80,.8); border-radius:1px; }
+.tf.ember{ width:8px; height:8px; border-radius:50%; background:#ffd27a; box-shadow:0 0 8px 2px #ff7a1a, 0 0 18px #ff4500; }
+.cmt.ember-head{ --cmt:#ff7a1a; }
+/* Aurora: cột sáng, vòng kính, bokeh, màn sáng */
+.tf.pillar{ width:64px; height:460px; transform-origin:50% 100%; border-radius:50% 50% 10px 10px; mix-blend-mode:screen;
+  background:linear-gradient(to top, #fff 0%, rgba(190,250,255,.9) 18%, rgba(150,200,255,.55) 45%, rgba(190,150,255,.25) 75%, transparent);
+  box-shadow:0 0 40px 10px rgba(150,220,255,.35); }
+.tf.glassRing{ width:90px; height:90px; border-radius:50%; border:2.5px solid rgba(255,255,255,.95); box-shadow:0 0 14px rgba(150,230,255,.9), inset 0 0 14px rgba(200,170,255,.7); }
+.tf.bokeh{ width:14px; height:14px; border-radius:50%; mix-blend-mode:screen; background:radial-gradient(circle, var(--c,#fff) 0%, color-mix(in srgb, var(--c,#fff) 40%, transparent) 45%, transparent 70%); }
+@supports not (background:color-mix(in srgb, red 50%, blue)){ .tf.bokeh{ background:radial-gradient(circle, var(--c,#fff) 0%, transparent 70%); } }
+.tf.curtain{ top:0; width:420px; height:1920px; mix-blend-mode:screen;
+  background:linear-gradient(90deg, transparent, rgba(120,255,220,.16) 30%, rgba(160,130,255,.22) 55%, rgba(120,180,255,.12) 75%, transparent); }
+.cmt.aur-head{ --cmt:#bff6ff; height:20px; border-radius:50%; }
+.cmt.tail.aur-head{ --cmt:#c99bff; }
+/* Neon: lục giác, ký tự, vạch quét, laser, vạch nhiễu, mưa ký tự */
+.tf.hex{ width:120px; height:120px; }
+.tf.hex svg{ width:100%; height:100%; overflow:visible; }
+.tf.hex polygon{ fill:none; stroke:#00f0ff; stroke-width:4; filter:drop-shadow(0 0 6px #00f0ff); }
+.tf.hex.m polygon{ stroke:#ff3df2; filter:drop-shadow(0 0 6px #ff3df2); }
+.tf.glyph{ font:700 22px/1 ui-monospace, Consolas, monospace; color:#9ffcff; text-shadow:0 0 6px #00f0ff; font-style:normal; }
+.tf.scanline{ width:1080px; height:4px; background:linear-gradient(90deg, transparent, #00f0ff 30%, #fff 50%, #ff3df2 70%, transparent); box-shadow:0 0 18px #00f0ff; }
+.tf.laser{ left:0; top:0; width:1080px; height:1920px; }
+.tf.laser svg{ position:absolute; inset:0; filter:drop-shadow(0 0 8px currentColor); }
+.tf.laser line{ filter:drop-shadow(0 0 6px #00f0ff); }
+.tf.laserDot{ left:0; top:0; width:26px; height:26px; margin:-13px 0 0 -13px; border-radius:50%; background:radial-gradient(circle,#fff 0 30%,#00f0ff 60%,transparent 72%); box-shadow:0 0 24px 6px #00f0ff; }
+.tf.gbar{ left:0; width:1080px; height:10px; mix-blend-mode:screen; background:linear-gradient(90deg, transparent, var(--c,#00f0ff) 20%, transparent 45%, var(--c,#00f0ff) 70%, transparent); }
+.tf.rain{ font:700 22px/1 ui-monospace, Consolas, monospace; color:#00f0ff; opacity:.5; text-shadow:0 0 8px #00f0ff; font-style:normal; }
+
+/* =================================================================
+   STYLE BẢNG THỐNG KÊ (cột phải + câu đố) — chọn riêng, đè lên style màn hình
+   :root[data-board=…] .card có độ ưu tiên cao hơn [data-theme=…] .card
+   ================================================================= */
+/* --- Khung Vàng: nền xanh đậm, viền vàng đôi, góc hoa văn, thanh điểm mảnh --- */
+:root[data-board=khung-vang] .card{ background:linear-gradient(180deg,rgba(10,20,46,.95),rgba(5,11,28,.95)); border:2px solid #c9a24a; border-radius:6px; box-shadow:0 0 0 1px rgba(0,0,0,.6), 0 12px 30px rgba(0,0,0,.5); backdrop-filter:none; }
+:root[data-board=khung-vang] .card::before{ content:''; position:absolute; inset:5px; border:1px solid rgba(201,162,74,.45); border-radius:3px; pointer-events:none; filter:none; width:auto; height:auto; }
+:root[data-board=khung-vang] .card::after{ content:''; position:absolute; inset:-7px; width:auto; height:auto; border:0; filter:none; pointer-events:none;
+  background:linear-gradient(#f3d27a,#f3d27a) 0 0/18px 3px, linear-gradient(#f3d27a,#f3d27a) 0 0/3px 18px, linear-gradient(#f3d27a,#f3d27a) 100% 0/18px 3px, linear-gradient(#f3d27a,#f3d27a) 100% 0/3px 18px,
+             linear-gradient(#f3d27a,#f3d27a) 0 100%/18px 3px, linear-gradient(#f3d27a,#f3d27a) 0 100%/3px 18px, linear-gradient(#f3d27a,#f3d27a) 100% 100%/18px 3px, linear-gradient(#f3d27a,#f3d27a) 100% 100%/3px 18px; background-repeat:no-repeat; }
+:root[data-board=khung-vang] .card h3{ color:#f3d27a; letter-spacing:2px; font-size:19px; text-shadow:none; }
+:root[data-board=khung-vang] .card h3 small{ color:#e9dcc0; }
+:root[data-board=khung-vang] .rows{ gap:4px; }
+:root[data-board=khung-vang] .row, :root[data-board=khung-vang] #giftCard .row{ height:44px; background:transparent; border-radius:0; border-bottom:1px solid rgba(201,162,74,.18); padding:0 4px; }
+:root[data-board=khung-vang] .row .fill{ top:auto; bottom:5px; left:40px; height:5px; max-width:calc(100% - 52px); border-radius:3px; background:linear-gradient(90deg,#f0a020,#ffe27a); box-shadow:0 0 8px rgba(255,190,60,.6); }
+:root[data-board=khung-vang] .row .rk{ width:22px; height:22px; background:none !important; color:#f3d27a !important; font-size:18px; border:0; }
+:root[data-board=khung-vang] .row .pn{ font-size:19px; font-weight:700; color:#fff; padding-bottom:6px; }
+:root[data-board=khung-vang] .row .pt{ color:#ffd76a; font-size:19px; padding-bottom:6px; text-shadow:none; }
+:root[data-board=khung-vang] .how .tier{ background:transparent; border-bottom:1px solid rgba(201,162,74,.18); border-radius:0; }
+:root[data-board=khung-vang] #qzN{ background:rgba(201,162,74,.25); }
+
+/* --- Tối Giản: không khung, chữ nổi trên nền mờ, thanh điểm mảnh --- */
+:root[data-board=toi-gian] .card{ background:linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,.38) 30%); border:0; border-radius:0; box-shadow:none; backdrop-filter:none; }
+:root[data-board=toi-gian] .card::before, :root[data-board=toi-gian] .card::after{ display:none; }
+:root[data-board=toi-gian] #quizCard{ background:linear-gradient(270deg,rgba(0,0,0,0),rgba(0,0,0,.5) 30%); }
+:root[data-board=toi-gian] .card h3{ color:#fff; font-size:22px; letter-spacing:1px; text-shadow:0 2px 8px #000; border-bottom:2px solid var(--gold); padding-bottom:6px; }
+:root[data-board=toi-gian] .card h3 small{ color:#fff; }
+:root[data-board=toi-gian] .card *{ text-shadow:0 2px 6px rgba(0,0,0,.9); }
+:root[data-board=toi-gian] .row, :root[data-board=toi-gian] #giftCard .row{ background:transparent; height:46px; padding:0 2px; border-radius:0; }
+:root[data-board=toi-gian] .row .fill{ top:auto; bottom:3px; height:3px; border-radius:2px; background:var(--gold); opacity:.9; box-shadow:none; }
+:root[data-board=toi-gian] .row .rk{ background:none !important; color:var(--gold) !important; border:0; font-size:20px; }
+:root[data-board=toi-gian] .row .pn{ font-size:21px; }
+:root[data-board=toi-gian] .row .pt{ color:#fff; font-size:21px; }
+:root[data-board=toi-gian] .how .tier{ background:transparent; border-bottom:1px solid rgba(255,255,255,.15); border-radius:0; }
+
+/* --- Thẻ Sáng: thẻ trắng ngà, chữ đậm — dễ đọc trên màn hình điện thoại nhỏ --- */
+:root[data-board=the-sang] .card{ background:linear-gradient(180deg,rgba(255,252,243,.97),rgba(246,236,214,.97)); border:0; border-radius:22px; box-shadow:0 10px 28px rgba(0,0,0,.45), inset 0 -4px 0 rgba(200,150,60,.25); backdrop-filter:none; color:#1b2440; }
+:root[data-board=the-sang] .card::before, :root[data-board=the-sang] .card::after{ display:none; }
+:root[data-board=the-sang] .card h3{ color:#b4600a; text-shadow:none; letter-spacing:1px; }
+:root[data-board=the-sang] .card h3 small{ color:#6a5a40; text-shadow:none; }
+:root[data-board=the-sang] .row, :root[data-board=the-sang] #giftCard .row{ background:rgba(27,36,64,.07); border-radius:14px; }
+:root[data-board=the-sang] .row .fill{ background:linear-gradient(90deg,rgba(255,170,40,.6),rgba(255,214,120,.35)); border-radius:14px; box-shadow:none; }
+:root[data-board=the-sang] .row .rk{ background:#e6dcc6; color:#1b2440; border:0; }
+:root[data-board=the-sang] .row .pn{ color:#1b2440; text-shadow:none; }
+:root[data-board=the-sang] .row .pt{ color:#b4600a; text-shadow:none; }
+:root[data-board=the-sang] .row .pn small{ color:#b4600a; }
+:root[data-board=the-sang] #giftCard .pt::after{ color:#6a5a40; }
+:root[data-board=the-sang] .empty, :root[data-board=the-sang] #qzFoot{ color:#6a5a40; }
+:root[data-board=the-sang] #lastBody .nm, :root[data-board=the-sang] #lastBody .gf, :root[data-board=the-sang] #qzQ{ color:#1b2440; }
+:root[data-board=the-sang] #lastBody .ft, :root[data-board=the-sang] .how div{ color:#3a4566; }
+:root[data-board=the-sang] #lastBody .qu, :root[data-board=the-sang] .how b{ color:#b4600a; }
+:root[data-board=the-sang] .how .tier{ background:rgba(27,36,64,.07); }
+:root[data-board=the-sang] .how .tier.full{ background:linear-gradient(90deg,#ffb431,#ffd77a); border-color:#e09a20; }
+:root[data-board=the-sang] .how .tier.full b, :root[data-board=the-sang] .how .tier.full span:first-child{ color:#3a2200; }
+:root[data-board=the-sang] #qzN{ background:rgba(27,36,64,.1); }
+:root[data-board=the-sang] #qzFoot.ans{ color:#0f8a45; }
+:root[data-board=the-sang] .gm b, :root[data-board=the-sang] .gm em{ color:#1b2440; }
+:root[data-board=the-sang] #lastBody .gf b, :root[data-board=the-sang] #cd{ color:#b4600a; }
+:root[data-board=the-sang] #cd.hot{ color:#d63b1a; }

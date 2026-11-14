@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Thắp Sáng Bản Đồ Việt Nam</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800;900&family=Noto+Serif:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/overlay.css">
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/themes-2.css">
+<link rel="stylesheet" href="css/regions-modal.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="stars" width="1080" height="1920"></canvas>
+  <div id="themeBg"></div>
+  <div id="twinkle"></div>
+  <div id="mapBox"><div id="tilt"><div id="cam">
+  <div id="floor"></div>
+  <div id="sea">
+    <div class="sea-wave s1"></div>
+    <div class="sea-wave s2"></div>
+    <div class="sea-wave s3"></div>
+    <div class="sea-shimmer"></div>
+    <div class="sea-coast"></div>
+  </div>
+  <svg id="map" viewBox="0 0 1080 1920">
+    <defs>
+      <linearGradient id="gGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe17a"/><stop offset=".55" stop-color="#ffc23d"/><stop offset="1" stop-color="#f29a16"/></linearGradient>
+      <linearGradient id="gSon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0b8"/><stop offset=".45" stop-color="#f4c542"/><stop offset="1" stop-color="#b87a10"/></linearGradient>
+      <linearGradient id="gAur" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ff7e4"/><stop offset=".5" stop-color="#7fa8ff"/><stop offset="1" stop-color="#c99bff"/></linearGradient>
+      <linearGradient id="gHoi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe9a0"/><stop offset=".5" stop-color="#ffb347"/><stop offset="1" stop-color="#ff5e3a"/></linearGradient>
+      <linearGradient id="gRadar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d4ffc4"/><stop offset=".5" stop-color="#7dff6a"/><stop offset="1" stop-color="#22b84a"/></linearGradient>
+      <linearGradient id="gTet" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2a8"/><stop offset=".5" stop-color="#ffd23f"/><stop offset="1" stop-color="#f5a300"/></linearGradient>
+      <linearGradient id="gGiay" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2b36b"/><stop offset="1" stop-color="#d9653f"/></linearGradient>
+      <linearGradient id="gNeon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff2bd6"/><stop offset="1" stop-color="#7a2bff"/></linearGradient>
+    </defs>
+    <g id="sideG"></g><g id="offG"></g><g id="litG"></g><g id="topG"></g><g id="duelG"></g><g id="lbG"></g>
+  </svg>
+  <div class="isl" id="islHS" style="left:528px;top:676px;width:196px;height:150px"><div class="isl-beacon"></div><h4>QUẦN ĐẢO HOÀNG SA<small>(TP Đà Nẵng)</small></h4><span class="vn">🇻🇳</span><div class="dots"></div></div>
+  <div class="isl" id="islTS" style="left:578px;top:1574px;width:150px;height:186px"><div class="isl-beacon"></div><h4>QUẦN ĐẢO TRƯỜNG SA<small>(tỉnh Khánh Hòa)</small></h4><span class="vn">🇻🇳</span><div class="dots"></div></div>
+  <div id="marks"></div>
+  </div></div></div>
+
+  <div id="head">
+    <div id="title">THẮP SÁNG BẢN ĐỒ VIỆT NAM</div>
+    <div id="sub">Comment <b>tên tỉnh, thành quê bạn</b> để thắp một ngọn đèn 🏮</div>
+    <div id="prog"><div id="bar"><div id="barIn"></div></div><div id="progTxt">Đã sáng <b id="litN">0</b>/34 tỉnh, thành · <span id="pplN">0</span> người</div></div>
+  </div>
+
+  <div class="card" id="lastCard"><h3>VỪA THẮP ĐÈN <small>🏮</small></h3><div id="lastBody"><div class="empty">Chưa có ai thắp đèn.<br>Comment tên quê bạn để là người đầu tiên!</div></div></div>
+  <div class="card" id="raceCard"><h3>ĐUA THẮP ĐÈN <small id="cdWrap">còn <span id="cd">5:00</span></small></h3><div class="rows" id="race"></div></div>
+  <div class="card" id="howCard"><h3 id="howTitle">BẢNG ĐIỂM THẮP ĐÈN</h3><div class="how" id="how"></div><div id="gmenu" hidden></div></div>
+  <div class="card" id="giftCard"><h3>QUÊ NHẬN NHIỀU QUÀ <small>🎁</small></h3><div class="rows" id="gifts"></div></div>
+
+  <div class="card" id="quizCard"><h3><span>✦ CÂU ĐỐ</span><small><span id="qzN">0 đúng</span> · <span id="qzCd">0:40</span></small></h3><div id="qzQ"></div><div id="qzFoot"></div></div>
+
+  <div id="pod">
+    <div id="podLbl">VINH DANH<br>NGƯỜI THẮP ĐÈN<small>tặng quà nhiều nhất đêm nay</small></div>
+    <div id="podBars"></div>
+    <div id="mcTag"><span class="eq"><i></i><i></i><i></i></span>MC đọc bằng giọng AI</div>
+  </div>
+  <div id="duel"><div class="dh"><span>🔥 ĐẠI CHIẾN · QUÊ NÀO ĐÔNG HƠN?</span><span id="duelCd">1:00</span></div><div class="dr"><div class="dn a" id="duelA"></div><div class="ds a" id="duelSa">0</div><div class="rope"><i class="ra" id="ropeA" style="width:50%"></i><i class="rb" id="ropeB" style="width:50%"></i></div><div class="ds b" id="duelSb">0</div><div class="dn b" id="duelB"></div></div><div class="dhint" id="duelHint">💬 bình luận +5 · ❤️ thả tim +1 · <span class="hot-follow">➕ follow +25</span> cho quê mình</div></div>
+  <div id="chestWrap" hidden>
+    <div class="chest-halo"></div>
+    <div class="chest-box">
+      <div class="chest-icon">🎁</div>
+      <div class="chest-rays"></div>
+    </div>
+    <div class="chest-info">
+      <div class="chest-title">✨ RƯƠNG VÀNG THẦN KỲ ✨</div>
+      <div class="chest-target">ĐANG Ở: <span id="chestProv">...</span> <small id="chestBonusTag">+3,000đ</small></div>
+      <div class="chest-bar-wrap">
+        <div id="chestBarIn" class="chest-bar-in" style="width:0%"></div>
+        <span id="chestEnergyTxt" class="chest-energy-txt">0/35 Năng Lượng</span>
+      </div>
+      <div class="chest-foot">
+        <span id="chestCd">còn 45s</span> · <span>💬 Comment tên tỉnh hoặc 🎁 Tặng quà để MỞ!</span>
+      </div>
+    </div>
+  </div>
+  <!-- MODAL ĐẠI CHIẾN ANH EM 3 MIỀN (POPUP TRÊN MÀN HÌNH BẢN ĐỒ) -->
+  <div id="regionsModal" class="regions-modal" hidden>
+    <div class="rm-backdrop"></div>
+    <div class="rm-stars"></div>
+    <div class="rm-nebula"></div>
+    
+    <button type="button" id="btnRmClose" class="rm-close-btn">✕ ĐÓNG BẢNG 3 MIỀN</button>
+
+    <div class="rm-content">
+      <!-- Tiêu đề Hoàng gia -->
+      <header class="rm-head">
+        <div class="rm-badge">✦ CHIẾN TRƯỜNG THẦN THOẠI ✦</div>
+        <h2 class="rm-title">ĐẠI CHIẾN ANH EM 3 MIỀN</h2>
+        <div class="rm-sub">BẮC · TRUNG · NAM — Quê hương nào sẽ xưng bá đêm nay?</div>
+        
+        <!-- Thanh giằng co 3 Miền -->
+        <div class="rm-tri-bar-wrap">
+          <div class="rm-tri-bar">
+            <div id="rmBarBac" class="rm-seg bac" style="width:33.33%">
+              <span class="rm-seg-lbl">🔴 BẮC <b id="rmPctBac">33%</b></span>
+            </div>
+            <div id="rmBarTrung" class="rm-seg trung" style="width:33.33%">
+              <span class="rm-seg-lbl">🟡 TRUNG <b id="rmPctTrung">33%</b></span>
+            </div>
+            <div id="rmBarNam" class="rm-seg nam" style="width:33.34%">
+              <span class="rm-seg-lbl">🔵 NAM <b id="rmPctNam">34%</b></span>
+            </div>
+          </div>
+          <div class="rm-clash c1" id="rmClash1" style="left:33.33%"></div>
+          <div class="rm-clash c2" id="rmClash2" style="left:66.66%"></div>
+        </div>
+      </header>
+
+      <!-- Đấu trường 3D 3 Cột Năng Lượng -->
+      <section class="rm-arena">
+        <div class="rm-perspective">
+          <div class="rm-floor"></div>
+
+          <!-- MIỀN BẮC -->
+          <div class="rm-pillar bac" id="rmPillarBac">
+            <div class="rm-beam"></div>
+            <div class="rm-pedestal">
+              <div class="rm-ring r1"></div>
+              <div class="rm-ring r2"></div>
+              <div class="rm-base"></div>
+            </div>
+            <div class="rm-crest">🐉</div>
+            <div class="rm-pname">MIỀN BẮC</div>
+            <div class="rm-score" id="rmScoreBac">0</div>
+            <div class="rm-provs">14 tỉnh thành</div>
+            <div class="rm-gen" id="rmGenBac">
+              <span class="rm-crown">👑</span>
+              <div class="rm-gav"></div>
+              <div class="rm-gname">Chưa có Đại Tướng</div>
+            </div>
+          </div>
+
+          <!-- MIỀN TRUNG -->
+          <div class="rm-pillar trung" id="rmPillarTrung">
+            <div class="rm-beam"></div>
+            <div class="rm-pedestal">
+              <div class="rm-ring r1"></div>
+              <div class="rm-ring r2"></div>
+              <div class="rm-base"></div>
+            </div>
+            <div class="rm-crest">🦅</div>
+            <div class="rm-pname">MIỀN TRUNG</div>
+            <div class="rm-score" id="rmScoreTrung">0</div>
+            <div class="rm-provs">12 tỉnh thành</div>
+            <div class="rm-gen" id="rmGenTrung">
+              <span class="rm-crown">👑</span>
+              <div class="rm-gav"></div>
+              <div class="rm-gname">Chưa có Đại Tướng</div>
+            </div>
+          </div>
+
+          <!-- MIỀN NAM -->
+          <div class="rm-pillar nam" id="rmPillarNam">
+            <div class="rm-beam"></div>
+            <div class="rm-pedestal">
+              <div class="rm-ring r1"></div>
+              <div class="rm-ring r2"></div>
+              <div class="rm-base"></div>
+            </div>
+            <div class="rm-crest">🦄</div>
+            <div class="rm-pname">MIỀN NAM</div>
+            <div class="rm-score" id="rmScoreNam">0</div>
+            <div class="rm-provs">8 tỉnh thành</div>
+            <div class="rm-gen" id="rmGenNam">
+              <span class="rm-crown">👑</span>
+              <div class="rm-gav"></div>
+              <div class="rm-gname">Chưa có Đại Tướng</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BẢNG QUÀ TẶNG TRỢ LỰC 3 MIỀN (GIFT SHOWCASE BOARD) -->
+      <section class="rm-gift-card">
+        <div class="rgc-head">
+          <span class="rgc-icon">🎁</span>
+          <div class="rgc-head-info">
+            <h3 class="rgc-title">BẢNG QUÀ TẶNG TRỢ LỰC 3 MIỀN</h3>
+            <span class="rgc-sub">Tặng quà tương ứng để bùng nổ điểm số & kéo bục thần thoại!</span>
+          </div>
+          <span class="rgc-badge">⚡ HỎA LỰC SIÊU CẤP</span>
+        </div>
+        <div class="rgc-grid">
+          <div class="rgc-item t1">
+            <div class="rgc-glow"></div>
+            <div class="rgc-gift-icon">🌹</div>
+            <div class="rgc-meta">
+              <div class="rgc-name">Hoa Hồng</div>
+              <div class="rgc-coin"><span class="c-coin">🪙</span> 1 xu</div>
+            </div>
+            <div class="rgc-pts">+3 ĐIỂM</div>
+          </div>
+          <div class="rgc-item t2">
+            <div class="rgc-glow"></div>
+            <div class="rgc-gift-icon">💛</div>
+            <div class="rgc-meta">
+              <div class="rgc-name">Tim Ngón Tay</div>
+              <div class="rgc-coin"><span class="c-coin">🪙</span> 5 xu</div>
+            </div>
+            <div class="rgc-pts">+30 ĐIỂM</div>
+          </div>
+          <div class="rgc-item t3">
+            <div class="rgc-glow"></div>
+            <div class="rgc-gift-icon">🎂</div>
+            <div class="rgc-meta">
+              <div class="rgc-name">Bánh Kem</div>
+              <div class="rgc-coin"><span class="c-coin">🪙</span> 30 xu</div>
+            </div>
+            <div class="rgc-pts">+100 ĐIỂM</div>
+          </div>
+          <div class="rgc-item t4">
+            <div class="rgc-glow"></div>
+            <div class="rgc-gift-icon">🦢</div>
+            <div class="rgc-meta">
+              <div class="rgc-name">Thiên Nga</div>
+              <div class="rgc-coin"><span class="c-coin">🪙</span> 100 xu</div>
+            </div>
+            <div class="rgc-pts">+500 ĐIỂM</div>
+          </div>
+          <div class="rgc-item t5 vip">
+            <div class="rgc-glow"></div>
+            <div class="rgc-gift-icon">🐉</div>
+            <div class="rgc-meta">
+              <div class="rgc-name">Rồng Vàng</div>
+              <div class="rgc-coin"><span class="c-coin">🪙</span> 1,000 xu</div>
+            </div>
+            <div class="rgc-pts vip">+3,000 ĐIỂM</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Hoạt động trực tiếp & Hướng dẫn điểm số -->
+      <footer class="rm-foot">
+        <div class="rm-pills">
+          <span class="rm-pill">💬 Bình luận quê/miền <b>+1đ</b></span>
+          <span class="rm-pill">❤️ Thả tim <b>+1đ</b></span>
+          <span class="rm-pill hot">➕ Follow kênh <b>+20đ</b></span>
+          <span class="rm-pill vip">🎁 Quà tặng <b>X3 đến X30 điểm</b></span>
+        </div>
+        <div class="rm-feed" id="rmFeed"></div>
+      </footer>
+    </div>
+  </div>
+
+  <div id="skyFx"></div>
+  <canvas id="fxCanvas" width="1080" height="1920"></canvas>
+  <div id="scan"></div>
+  <div id="veil"></div>
+  <div id="banner"><div class="bav-wrap"><div class="bav"></div><span class="bav-crown">👑</span></div><div class="k"></div><div class="v"></div><div class="s"></div><div class="banner-ribbon">✦ VINH DANH QUÀ TẶNG ✦</div></div>
+</div>
+<div id="soundHint">🔇 Chạm / bấm vào màn hình để bật tiếng MC</div>
+
+<script type="module" src="js/overlay/main.js"></script>
+
+</body>
+</html>

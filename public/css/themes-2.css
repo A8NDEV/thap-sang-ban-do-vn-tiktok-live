@@ -1,0 +1,19 @@
+/* =====================================================================
+   STYLE ĐỢT 2: Đèn Lồng Hội An · Radar Chỉ Huy · chế độ Bản đồ 3D (dùng chung)
+   (hạt hiệu ứng riêng nằm ở js/overlay/theme-fx.js)
+   ===================================================================== */
+
+/* =====================================================================
+   BẢN ĐỒ 3D (bật riêng, dùng chung mọi style): nghiêng sâu, khối dày gấp đôi, tỉnh sáng nhô cao
+   ===================================================================== */
+body.map3d #tilt{ transform-origin:50% 100%; animation-name:sway3d; animation-duration:22s; }
+/* xoay quanh mép dưới + đẩy lên + phóng nhẹ: miền Bắc không bị lùi quá xa, khối vẫn dày */
+@keyframes sway3d{
+  0%  { transform:translateY(-120px) perspective(2200px) rotateX(26deg) rotateZ(-2.5deg) scale(1.14); }
+  50% { transform:translateY(-130px) perspective(2200px) rotateX(31deg) rotateZ(2deg) scale(1.17); }
+  100%{ transform:translateY(-125px) perspective(2200px) rotateX(28deg) rotateZ(-1deg) scale(1.15); } }
+body.map3d .sd path{ transform:translateY(calc(var(--dy) * 2.4px)); transition:transform .7s cubic-bezier(.2,1.5,.4,1); }
+body.map3d .sd.on path{ transform:translateY(calc(var(--dy) * 3px - 6px)); }
+body.map3d .pv.on, body.map3d .hl, body.map3d .lb.on{ transform:translateY(-20px); }
+body.map3d #sideG{ filter:drop-shadow(0 26px 16px rgba(0,0,0,.6)); }
+body.map3d .lb{ font-size:17px; }

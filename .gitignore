@@ -1,0 +1,20 @@
+# Bí mật & dữ liệu runtime (key API, token, key bản quyền, dữ liệu người xem, cache giọng đọc)
+data/
+
+# Binary & thư viện cài lại được
+node.exe
+node_modules/
+
+# Nhạc nền (có thể dính bản quyền, nặng)
+nhac/*
+!nhac/DOC-TOI.txt
+
+# Gói zip phát hành, log, file hệ thống
+*.zip
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.*
+.claude/
+graphify-out/

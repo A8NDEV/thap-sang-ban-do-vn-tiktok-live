@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Điều khiển · Thắp Sáng Bản Đồ</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="css/control.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">🏮 <b>Thắp Sáng Bản Đồ</b><small>Việt Nam · TikTok LIVE</small></div>
+  <div class="status">
+    <span id="st">chưa kết nối</span>
+    <span id="licState"></span><a href="#" id="licRe" hidden>↻ nhập lại key</a>
+    <span class="ver">v<b id="appVer">…</b></span>
+    <a class="ghost" href="/overlay.html" target="_blank">Mở overlay ↗</a>
+  </div>
+</header>
+<div id="soundWarn" class="sound-warn" hidden></div>
+
+<nav id="tabs">
+  <a href="#huong-dan" data-page="huong-dan">🧭 Hướng dẫn kết nối</a>
+  <a href="#dieu-khien" data-page="dieu-khien">🎮 Điều khiển LIVE</a>
+  <a href="#luat-choi" data-page="luat-choi">🏆 Luật chơi</a>
+  <a href="#qua-tang" data-page="qua-tang">🎁 Quà tặng</a>
+  <a href="#mc-nhac" data-page="mc-nhac">🎙️ MC & nhạc</a>
+  <a href="#he-thong" data-page="he-thong">⚙️ Cập nhật & bản quyền</a>
+  <a href="#nhat-ky" data-page="nhat-ky">📜 Nhật ký</a>
+</nav>
+
+<div class="wrap">
+<main>
+  <!-- key: hiện ở mọi trang khi chưa kích hoạt -->
+  <section id="licCard" hidden>
+    <h2>🔑 Kích hoạt bản quyền</h2>
+    <small class="note" style="margin:0 0 10px">Nhập key trong email mua hàng ở <a href="https://vn-tool.online/" target="_blank" rel="noopener">vn-tool.online</a>. Mỗi máy chỉ cần nhập 1 lần, máy phải có Internet. Chưa kích hoạt vẫn chạy thử được, nhưng chưa kết nối TikTok LIVE được.</small>
+    <div class="row"><input type="text" id="licKey" placeholder="Dán key vào đây" autocomplete="off" style="font-family:monospace"><button class="gold" id="btnLic">Kích hoạt</button></div>
+    <small class="note" id="licMsg"></small>
+  </section>
+
+  <!-- ===== 1. HƯỚNG DẪN KẾT NỐI ===== -->
+  <div class="page" data-page="huong-dan">
+    <section class="hero">
+      <h2>📖 Hướng dẫn kết nối từng bước</h2>
+      <p>Bước có nhãn <span class="once">làm 1 lần</span> chỉ cần làm lần đầu. Những lần sau: <b>Bắt đầu LIVE trên TikTok → bấm Kết nối (bước 6)</b> là xong — tool nhớ tên kênh và tự kết nối lại khi rớt mạng.</p>
+      <div class="checks"><span id="ckLic">🔑 Key bản quyền</span><span id="ckSign">⚡ Key EulerStream</span><span id="ckHost">🌐 Tên miền OBS</span><span id="ckLive">📡 Đang nhận LIVE</span></div>
+    </section>
+
+    <section class="step"><i>1</i><div>
+      <h2>Kích hoạt key bản quyền <span class="once">làm 1 lần</span></h2>
+      <p>Nhìn góc trên bên phải: thấy <b>🔑 Đã kích hoạt</b> là xong. Chưa có thì dán key (trong email mua hàng ở vn-tool.online) vào khung đỏ ở đầu trang → bấm <b>Kích hoạt</b>. Máy cần Internet; kích hoạt xong tool tự tải giọng MC và nhạc mẫu.</p>
+    </div></section>
+
+    <section class="step"><i>2</i><div>
+      <h2>Lấy API key EulerStream <span class="once">làm 1 lần</span></h2>
+      <p>Để kết nối TikTok không bị giới hạn số lần mỗi giờ (không có key hay gặp lỗi <i>rate limit</i>, phải đợi rất lâu mới kết nối lại được).</p>
+      <ul>
+        <li>Mở <a href="https://www.eulerstream.com/pricing" target="_blank" rel="noopener">eulerstream.com/pricing</a> → đăng ký tài khoản gói miễn phí (<b>Free</b>).</li>
+        <li>Đăng nhập → trang quản lý tài khoản (<b>Dashboard</b>) → mục <b>API Key</b> → tạo key mới và sao chép. <span class="dim">Tên nút trên web có thể khác đôi chút.</span></li>
+        <li>Dán vào ô dưới đây → bấm <b>Lưu key</b>. Thấy <b>✓ Đã có key</b> là xong.</li>
+      </ul>
+      <div class="row"><input type="password" id="signKey" placeholder="dán API key EulerStream" autocomplete="off"><button class="gold" id="btnSign">Lưu key</button><button id="btnSignDel" hidden>Xóa key</button></div>
+      <small class="note" id="signMsg"></small>
+      <small class="note">Key là thông tin bí mật: không gửi cho người khác, không chụp màn hình có key. Tool chỉ hiện 4 ký tự cuối.</small>
+    </div></section>
+
+    <section class="step"><i>3</i><div>
+      <h2>Thêm tên miền riêng vào máy <span class="once">làm 1 lần</span></h2>
+      <p>Bấm nút dưới → Windows hỏi quyền → bấm <b>Có</b>. Thấy <b>✓ tên miền đã trỏ về máy này</b> là xong (để TikTok LIVE Studio / OBS nhận được link).</p>
+      <div class="row"><button id="btnHost">🌐 Thêm tên miền vào hosts</button><span id="hostOk"></span></div>
+    </div></section>
+
+    <section class="step"><i>4</i><div>
+      <h2>Thêm bản đồ vào phần mềm phát <span class="once">làm 1 lần</span></h2>
+      <p>Sao chép link dưới đây rồi:</p>
+      <div id="obsLinks"></div>
+      <ul>
+        <li><b>TikTok LIVE Studio:</b> Thêm nguồn → <b>Liên kết</b> (Link) → dán link. Khung đặt <b>1080 × 1920</b>, kéo phủ kín màn hình dọc.</li>
+        <li><b>OBS:</b> Sources → <b>+</b> → <b>Browser</b> → dán URL, Width <b>1080</b>, Height <b>1920</b>, bật <b>Control audio via OBS</b>.</li>
+        <li>Không thấy hình: bấm <b>Mở overlay cửa sổ riêng</b> rồi thêm nguồn <b>Chụp cửa sổ / Window Capture</b> → chọn cửa sổ bản đồ.</li>
+      </ul>
+      <div class="row"><button id="btnWin">↗ Mở overlay cửa sổ riêng</button><button class="gold" id="btn3Mien">⚔️ Mở màn hình Đại Chiến 3 Miền (3D)</button></div>
+      <small class="note">Link bản đồ: <code id="ovUrl">/overlay.html</code> · Link 3 Miền: <code id="mienUrl">/3mien.html</code></small>
+    </div></section>
+
+    <section class="step"><i>5</i><div>
+      <h2>Thử trước khi lên sóng</h2>
+      <p>Bấm chạy thử: bản đồ tự sáng, MC đọc tên, cảm ơn quà — xem trong phần mềm phát có hình và tiếng chưa. <b>Nhớ bấm Dừng</b> trước khi live thật. Nhạc nền: tải nhạc ở tab <a href="#mc-nhac">🎙️ MC &amp; nhạc</a> (nên dùng nhạc miễn phí bản quyền: NCS, StreamBeats, Pixabay…).</p>
+      <div class="row"><button class="gold" id="btnDemo">▶️ Chạy thử tự động</button><button id="btnVoice">🔊 Thử giọng</button></div>
+    </div></section>
+
+    <section class="step"><i>6</i><div>
+      <h2>Bắt đầu LIVE rồi kết nối</h2>
+      <p>Bấm <b>Phát trực tiếp</b> trên TikTok / LIVE Studio trước. Sau đó gõ tên kênh → bấm <b>Kết nối</b>. Phải đang LIVE mới kết nối được; thanh trên cùng chuyển xanh <b>● đang live @kênh</b> là tool đã nhận bình luận, tim, quà.</p>
+      <div class="row"><input type="text" id="uid" placeholder="tên kênh TikTok (không cần @)"><button class="gold" id="btnConn">Kết nối</button><button id="btnDis">Ngắt</button></div>
+      <div id="connMsg" class="conn idle">○ Chưa kết nối — bấm <b>Kết nối</b> khi đang LIVE.</div>
+    </div></section>
+
+    <section class="step"><i>7</i><div>
+      <h2>Kiểm tra trong phòng LIVE</h2>
+      <p>Bình luận tên một tỉnh, ví dụ <code>Hà Nội</code>, <code>Sài Gòn</code>, <code>Đà Lạt</code> (không dấu cũng được) → tỉnh đó sáng đèn và MC đọc tên bạn. Tặng 1 bông hồng → MC cảm ơn, cộng điểm cho quê. Gán quà nào làm gì ở tab <a href="#qua-tang">🎁 Quà tặng</a>.</p>
+    </div></section>
+
+    <section class="step"><i>?</i><div>
+      <h2>Gặp sự cố</h2>
+      <ul class="faq">
+        <li><b>Không nghe tiếng MC:</b> chuột phải nguồn → <b>Làm mới / Refresh</b> (hoặc Interact → bấm vào khung 1 lần). OBS: kiểm tra đã bật <b>Control audio via OBS</b> và thanh âm lượng nguồn.</li>
+        <li><b>Không kết nối được:</b> phải đang LIVE; gõ đúng tên kênh (phần sau <code>tiktok.com/@</code>). Báo <i>rate limit</i> → làm bước 2 (key EulerStream).</li>
+        <li><b>Báo EulerStream từ chối API key:</b> sao chép lại nguyên key trên eulerstream.com → Lưu key → Kết nối.</li>
+        <li><b>Không thấy hình:</b> làm lại bước 3, hoặc dùng <b>Mở overlay cửa sổ riêng</b> + Window Capture.</li>
+        <li><b>Nghe tiếng 2 lần:</b> bấm 🔇 ở khung xem trước bên phải.</li>
+      </ul>
+    </div></section>
+
+    <section class="step"><i>📱</i><div>
+      <h2>LIVE bằng điện thoại (không bắt buộc)</h2>
+      <div id="phoneBox"></div>
+    </div></section>
+  </div>
+
+  <!-- ===== 2. ĐIỀU KHIỂN LIVE ===== -->
+  <div class="page" data-page="dieu-khien">
+    <section>
+      <h2>Tình hình</h2>
+      <div class="stat"><div><b id="sLit">0</b>tỉnh sáng</div><div><b id="sPpl">0</b>người thắp</div><div><b id="sRound">1</b>vòng</div></div>
+      <div class="lit" id="litList"></div>
+    </section>
+    <section>
+      <h2>🎤 MC nói câu bạn gõ</h2>
+      <div class="row"><input type="text" id="sayText" placeholder="gõ câu cho MC đọc ngay"><button class="gold" id="btnSay">Nói</button></div>
+    </section>
+    <section>
+      <h2>Điều khiển nhanh</h2>
+      <div class="row"><button id="btnEnd">🏁 Kết thúc vòng ngay</button><button id="btnRR">Xóa điểm vòng này</button><button id="btnDuel">⚔️ Đại chiến ngay</button><button id="btnDuelStop">Dừng trận</button></div>
+      <div class="row"><button id="btnQuiz">❓ Ra câu đố ngay</button><button id="btnQuizStop">Kết thúc câu đố</button><button id="btnChest" class="gold">🎁 Thả Rương Vàng</button><button id="btnChestStop">Hủy rương</button></div>
+      <div class="row">
+        <button class="gold" id="btnToggle3Mien">⚔️ BẬT ĐẠI CHIẾN 3 MIỀN (Trên màn hình)</button>
+        <button class="red" id="btnClose3Mien">❌ TẮT ĐẠI CHIẾN 3 MIỀN</button>
+        <button id="btnReset3Mien">🔄 Đặt lại điểm 3 Miền</button>
+        <button id="btnPlay3Mien">↗ Cửa sổ riêng</button>
+      </div>
+      <div class="row"><button class="red" id="btnRM">🗺️ Tắt hết đèn (bản đồ mới)</button><button class="red" id="btnNS">🆕 Buổi live mới (xóa hết)</button></div>
+    </section>
+    <section>
+      <h2>🎨 Style màn hình LIVE <small>đổi ngay khi đang live</small></h2>
+      <div class="themes" id="themes">
+        <button type="button" data-theme="mac-dinh"><i class="sw sw-mac-dinh"></i><b>Đêm Vàng</b><small>mặc định · navy + vàng</small></button>
+        <button type="button" data-theme="son-mai"><i class="sw sw-son-mai"></i><b>Sơn Mài Đông Sơn</b><small>đen son · đỏ · vàng kim</small></button>
+        <button type="button" data-theme="aurora"><i class="sw sw-aurora"></i><b>Kính Aurora</b><small>cực quang · kính mờ</small></button>
+        <button type="button" data-theme="neon"><i class="sw sw-neon"></i><b>Neon Cyber</b><small>hồng · cyan · glitch</small></button>
+        <button type="button" data-theme="hoi-an"><i class="sw sw-hoi-an"></i><b>Đèn Lồng Hội An</b><small>tím đêm · đèn lồng · trăng</small></button>
+        <button type="button" data-theme="radar"><i class="sw sw-radar"></i><b>Radar Chỉ Huy</b><small>xanh quân sự · tia quét</small></button>
+        <button type="button" data-theme="tet"><i class="sw sw-tet"></i><b>Tết Rộn Ràng</b><small>đỏ · vàng · pháo hoa · mai đào</small></button>
+        <button type="button" data-theme="giay-co"><i class="sw sw-giay-co"></i><b>Giấy Cổ</b><small>bản đồ cổ · nền sáng ban ngày</small></button>
+      </div>
+      <div class="dlbar" id="styleDl" hidden><i></i><span></span></div>
+      <input type="hidden" data-k="theme" id="themeVal">
+      <h2 style="margin-top:14px">📊 Style bảng thống kê <small>cột bên phải + hộp câu đố</small></h2>
+      <div class="themes" id="boards">
+        <button type="button" data-board="theo-style"><i class="sw bd-theo-style"></i><b>Theo style màn hình</b><small>mặc định · đồng bộ màu</small></button>
+        <button type="button" data-board="khung-vang"><i class="sw bd-khung-vang"></i><b>Khung Vàng</b><small>viền vàng đôi · thanh mảnh</small></button>
+        <button type="button" data-board="toi-gian"><i class="sw bd-toi-gian"></i><b>Tối Giản</b><small>không khung · thấy rõ bản đồ</small></button>
+        <button type="button" data-board="the-sang"><i class="sw bd-the-sang"></i><b>Thẻ Sáng</b><small>nền trắng · chữ to rõ</small></button>
+      </div>
+      <input type="hidden" data-k="boardStyle" id="boardVal">
+      <label><span>🧊 Bản đồ 3D <small class="dim">(nghiêng sâu, tỉnh nổi khối cao — dùng được với mọi style)</small></span><input type="checkbox" data-k="map3d"></label>
+      <label><span>Hiệu ứng nhẹ <small class="dim">(máy yếu / OBS cũ: tắt nền động, kính mờ, sao chổi)</small></span><input type="checkbox" data-k="fxLite"></label>
+    </section>
+    <section>
+      <h2>🧪 Khách thử (không cần live)</h2>
+      <div class="row"><input type="text" id="simName" value="anhbabich" style="max-width:150px"><input type="text" id="simText" value="Đồng Nai"><button id="btnChat">Bình luận</button></div>
+      <div class="row"><button id="btnLike">❤️ Thả 10 tim</button><button id="btnFollow" class="gold">➕ Thử Follow (+25đ)</button><input type="number" id="simCoins" value="5"><button id="btnGift">🎁 Tặng xu</button><button id="btnJoin">👋 Vào phòng</button></div>
+      <small class="note">Gõ được tên tỉnh mới, tên cũ (Bình Dương, Quảng Nam…), tên thành phố (Sài Gòn, Đà Lạt, Phú Quốc…), không dấu cũng được.</small>
+    </section>
+  </div>
+
+  <!-- ===== 3. LUẬT CHƠI ===== -->
+  <div class="page" data-page="luat-choi">
+    <section>
+      <h2>Vòng đua & điểm</h2>
+      <label><span>Mỗi vòng đua (phút)</span><input type="number" data-k="roundMin"></label>
+      <label><span>Điểm mỗi comment (tối đa 2 giây/lần)</span><input type="number" data-k="commentPts"></label>
+      <label><span>Điểm mỗi tim (0 = tim không tính)</span><input type="number" data-k="likePts"></label>
+      <label><span>Điểm mỗi follow bình thường</span><input type="number" data-k="followPts"></label>
+      <label class="wide"><span>Bậc quà <small>(xu:điểm, tính theo tổng xu mỗi lần tặng)</small></span><input type="text" data-k="giftTiers"></label>
+      <label><span>Tặng đủ (xu, cộng dồn cả buổi) → cả nước rực sáng</span><input type="number" data-k="fullCoins"></label>
+      <label><span>Điểm thưởng khi thắp sáng cả nước</span><input type="number" data-k="fullPts"></label>
+      <label><span>Vắng hoạt động quá (giờ) → tự bắt đầu bản đồ mới (0 = không)</span><input type="number" data-k="newSessionHours"></label>
+    </section>
+    <section>
+      <h2>⚔️ Đại chiến <small>2 tỉnh dẫn đầu đối đầu</small></h2>
+      <label><span>Bật đại chiến tự động</span><input type="checkbox" data-k="duelOn"></label>
+      <label><span>Mỗi bao nhiêu phút một trận</span><input type="number" data-k="duelEveryMin"></label>
+      <label><span>Mỗi trận dài (giây)</span><input type="number" data-k="duelSec"></label>
+      <label><span>Điểm thưởng cho quê thắng</span><input type="number" data-k="duelBonus"></label>
+      <label><span>Trong trận: mỗi bình luận được (điểm)</span><input type="number" data-k="duelCmtPts"></label>
+      <label><span>Trong trận: mỗi tim được (điểm)</span><input type="number" data-k="duelLikePts"></label>
+      <label><span>Trong trận: mỗi follow được (điểm kéo co)</span><input type="number" data-k="duelFollowPts"></label>
+    </section>
+    <section>
+      <h2>❓ Câu đố <small>MC rảnh thì ra câu đố lịch sử / tỉnh thành xen kẽ</small></h2>
+      <label><span>Bật câu đố tự động</span><input type="checkbox" data-k="quizOn"></label>
+      <label><span>Cách nhau bao nhiêu phút một câu</span><input type="number" data-k="quizEveryMin"></label>
+      <label><span>Thời gian trả lời mỗi câu (giây)</span><input type="number" data-k="quizSec"></label>
+      <label><span>Điểm cho người đúng đầu tiên <small class="dim">(người đúng sau được 1/5)</small></span><input type="number" data-k="quizPts"></label>
+      <small class="note">Người xem comment đáp án (không dấu cũng được). Điểm cộng cho quê người trả lời; chưa có quê thì giữ lại, comment tên tỉnh là cộng. Có người đúng đầu tiên → còn tối đa 15 giây cho người khác.</small>
+    </section>
+    <section>
+      <h2>👑 Chủ tỉnh <small>người tặng nhiều nhất cho tỉnh, giữ qua các buổi</small></h2>
+      <label><span>Bật Chủ tỉnh</span><input type="checkbox" data-k="ownerOn"></label>
+      <div class="row"><button class="red" id="btnOwnReset">Xóa toàn bộ Chủ tỉnh</button></div>
+    </section>
+    <section>
+      <h2>🔥 Tự Động Giữ Nhịp Livestream <small>tự động bình luận, thả tim, follow, tặng quà giữ nhiệt phòng</small></h2>
+      <label><span>Bật tự động giữ nhịp</span><input type="checkbox" data-k="autoPacing"></label>
+      <label><span>Tốc độ giữ nhịp</span>
+        <select data-k="autoPaceSpeed">
+          <option value="normal">Vừa phải · 5–9 giây/lần (Khuyên dùng)</option>
+          <option value="slow">Chậm rãi · 10–15 giây/lần</option>
+          <option value="fast">Nhanh · 3–5 giây/lần (Sôi động)</option>
+        </select>
+      </label>
+      <label><span>Thỉnh thoảng tặng quà nhỏ (hoa hồng, tim)</span><input type="checkbox" data-k="autoPaceGifts"></label>
+      <small class="note">Hệ thống tự động dùng tên người xem ngẫu nhiên, tự chia phe kéo co khi đại chiến, tự mở rương và tự động nhường sóng khi có người xem thật bình luận.</small>
+    </section>
+  </div>
+
+  <!-- ===== 4. QUÀ TẶNG ===== -->
+  <div class="page" data-page="qua-tang">
+    <section>
+      <h2>Quà tặng → hành động</h2>
+      <small class="note" style="margin:0 0 8px">Bấm <b>Chọn quà</b> ở mỗi dòng rồi bấm hình quà. Điểm cho quê vẫn tính theo bậc xu (trang Luật chơi); quà không gán thì hiệu ứng theo mức xu.</small>
+      <div id="acts"></div>
+      <label><span>Hiện "Tặng quà này để…" trên màn hình LIVE</span><input type="checkbox" data-k="giftMenuOn"></label>
+      <div class="row"><button id="btnGiftRefresh">🔄 Cập nhật danh sách quà từ TikTok</button></div>
+      <small class="note" id="catInfo"></small>
+    </section>
+    <section>
+      <h2>Giá quà lạ</h2>
+      <small class="note">Quà mới chưa có trong danh sách sẽ hiện ở đây — nhập số xu một lần là nhớ.</small>
+      <div id="unk"></div>
+      <div class="row"><input type="text" id="pId" placeholder="mã quà" style="max-width:110px"><input type="number" id="pCoins" placeholder="xu"><button id="btnPrice">Lưu giá</button></div>
+      <div id="prices" style="color:var(--dim);font-size:13px"></div>
+    </section>
+  </div>
+
+  <!-- ===== 5. MC & NHẠC ===== -->
+  <div class="page" data-page="mc-nhac">
+    <section>
+      <h2>🎙️ Giọng MC <small>một giọng duy nhất: Nam Minh</small></h2>
+      <label><span>Tốc độ (%, mặc định +15 = nhanh)</span><input type="number" data-k="rate"></label>
+      <label><span>Cao độ (Hz)</span><input type="number" data-k="pitch"></label>
+      <label><span>Âm lượng (+%)</span><input type="number" data-k="volume"></label>
+    </section>
+    <section>
+      <h2>MC nói gì</h2>
+      <label><span>Đọc giới thiệu tỉnh khi thắp đèn</span><input type="checkbox" data-k="readFact"></label>
+      <label><span>Chào mọi người vào phòng, mời thắp đèn</span><input type="checkbox" data-k="greetJoin"></label>
+      <label><span>Người quen quay lại → tự thắp đèn quê họ</span><input type="checkbox" data-k="returnLight"></label>
+      <label><span>MC nói liên tục (khều tặng quà, mời thắp đèn, gọi tên người mới vào)</span><input type="checkbox" data-k="idleTalk"></label>
+      <label><span>Nghỉ giữa các câu (giây, 0–1 = nói liên tục)</span><input type="number" data-k="idleGapSec"></label>
+    </section>
+    <section>
+      <h2>🎵 Nhạc nền</h2>
+      <label><span>Bật nhạc nền (chép mp3 vào thư mục <b>nhac</b>)</span><input type="checkbox" data-k="music"></label>
+      <label><span>Âm lượng nhạc (%) — mặc định 50</span><input type="number" data-k="musicVol"></label>
+      <div id="musicDrop" class="drop"><input type="file" id="musicFile" accept=".mp3,.m4a,.ogg,.wav,.aac,audio/*" multiple hidden>
+        <b>⬆ Kéo thả file nhạc vào đây</b> hoặc <button id="btnMusicUp" class="gold">Chọn file nhạc</button>
+        <small>mp3 · m4a · ogg · wav · aac, tối đa 50 MB mỗi bài, chọn nhiều bài một lần được</small></div>
+      <div id="musicUp"></div>
+      <div id="musicList"></div>
+      <div id="musicInfo" style="color:var(--dim);font-size:13px"></div>
+    </section>
+  </div>
+
+  <!-- ===== 6. CẬP NHẬT & BẢN QUYỀN ===== -->
+  <div class="page" data-page="he-thong">
+    <section id="updBar">
+      <h2>Phiên bản & cập nhật</h2>
+      <div class="row"><button id="btnUpdCheck">🔄 Kiểm tra cập nhật</button><button class="gold" id="btnUpdApply" hidden>⬇ Cập nhật</button><span id="updMsg"></span></div>
+      <pre id="updNotes" hidden></pre>
+      <h2 style="margin-top:14px">Style màn hình, giọng MC & nhạc mẫu tải về</h2>
+      <div class="dlbar" id="dataBar" hidden><i></i><span></span></div>
+      <div class="row"><span id="dataMsg"></span><button id="btnData" hidden>⬇ Tải dữ liệu</button></div>
+    </section>
+    <section>
+      <h2>🔑 Bản quyền</h2>
+      <small class="note" style="margin:0">Trạng thái key ở góc trên bên phải. Đổi máy / nhập lại key: bấm <b>↻ nhập lại key</b> cạnh trạng thái.</small>
+    </section>
+  </div>
+
+  <!-- ===== 7. NHẬT KÝ ===== -->
+  <div class="page" data-page="nhat-ky">
+    <section><h2>Nhật ký</h2><div id="log"></div></section>
+  </div>
+</main>
+
+<aside class="preview">
+  <div class="pv-head"><b>Xem trước màn hình LIVE</b><button id="pvSound" class="sm" title="Bật / tắt tiếng khung xem trước">🔇 Đang tắt tiếng</button></div>
+  <div class="pv-box"><iframe id="pvFrame" title="Xem trước overlay" src="about:blank" allow="autoplay"></iframe></div>
+  <small class="note" id="pvNote"></small>
+</aside>
+</div>
+
+<dialog id="pick"><div class="pk-head"><b id="pkTitle">Chọn quà</b><input type="search" id="pkQ" placeholder="tìm tên quà (Việt / Anh)…"><button id="pkClose">Xong</button></div><div id="pkGrid"></div></dialog>
+<script type="module" src="js/control.js"></script>
+<script type="module" src="js/control-tabs.js"></script>
+</body>
+</html>

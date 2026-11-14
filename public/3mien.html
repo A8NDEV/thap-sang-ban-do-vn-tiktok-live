@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Đại Chiến Anh Em 3 Miền — Bắc · Trung · Nam</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@500;600;700;800;900&family=Noto+Serif:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/3mien.css">
+<link rel="stylesheet" href="css/regions-modal.css">
+</head>
+<body>
+<div id="stage">
+  <!-- Nền vũ trụ & ánh sáng 3D -->
+  <div id="stars"></div>
+  <div id="nebula"></div>
+  <canvas id="fxCanvas" width="1080" height="1920"></canvas>
+
+  <!-- Tiêu đề Hoàng gia -->
+  <header id="head">
+    <div class="super-badge">✦ CHIẾN TRƯỜNG THẦN THOẠI ✦</div>
+    <h1 id="title">ĐẠI CHIẾN ANH EM 3 MIỀN</h1>
+    <div id="sub">Comment tên tỉnh hoặc miền để cộng điểm · Tặng quà & Follow để kéo bục thần!</div>
+    
+    <!-- Thanh Giằng Co Tam Đấu 3 Màu -->
+    <div class="tri-battle-bar-wrap">
+      <div class="tri-bar">
+        <div id="barBac" class="tri-seg bac" style="width:33.33%">
+          <span class="seg-lbl">🔴 BẮC <b id="pctBac">33%</b></span>
+        </div>
+        <div id="barTrung" class="tri-seg trung" style="width:33.33%">
+          <span class="seg-lbl">🟡 TRUNG <b id="pctTrung">33%</b></span>
+        </div>
+        <div id="barNam" class="tri-seg nam" style="width:33.34%">
+          <span class="seg-lbl">🔵 NAM <b id="pctNam">34%</b></span>
+        </div>
+      </div>
+      <div class="tri-clash-point cp1" style="left:33.33%"></div>
+      <div class="tri-clash-point cp2" style="left:66.66%"></div>
+    </div>
+  </header>
+
+  <!-- ĐẤU TRƯỜNG 3D (3 BỆ THẦN & CỘT NĂNG LƯỢNG) -->
+  <main id="arena3D">
+    <div id="perspectiveBox">
+      <div id="floorGrid"></div>
+      
+      <!-- BỆ 1: MIỀN BẮC -->
+      <div class="pillar-wrap bac" id="pBac">
+        <div class="pillar-beam"></div>
+        <div class="pedestal">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="base-plate"></div>
+        </div>
+        <div class="hero-crest">🐉</div>
+        <div class="reg-name">MIỀN BẮC</div>
+        <div class="reg-score" id="scoreBac">0</div>
+        <div class="reg-prov-count">14 tỉnh thành</div>
+        <div class="top-general" id="genBac">
+          <div class="gen-crown">👑</div>
+          <div class="gen-av"></div>
+          <div class="gen-name">Chưa có Đại Tướng</div>
+        </div>
+      </div>
+
+      <!-- BỆ 2: MIỀN TRUNG -->
+      <div class="pillar-wrap trung" id="pTrung">
+        <div class="pillar-beam"></div>
+        <div class="pedestal">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="base-plate"></div>
+        </div>
+        <div class="hero-crest">🦅</div>
+        <div class="reg-name">MIỀN TRUNG</div>
+        <div class="reg-score" id="scoreTrung">0</div>
+        <div class="reg-prov-count">12 tỉnh thành</div>
+        <div class="top-general" id="genTrung">
+          <div class="gen-crown">👑</div>
+          <div class="gen-av"></div>
+          <div class="gen-name">Chưa có Đại Tướng</div>
+        </div>
+      </div>
+
+      <!-- BỆ 3: MIỀN NAM -->
+      <div class="pillar-wrap nam" id="pNam">
+        <div class="pillar-beam"></div>
+        <div class="pedestal">
+          <div class="ring r1"></div>
+          <div class="ring r2"></div>
+          <div class="base-plate"></div>
+        </div>
+        <div class="hero-crest">🦄</div>
+        <div class="reg-name">MIỀN NAM</div>
+        <div class="reg-score" id="scoreNam">0</div>
+        <div class="reg-prov-count">8 tỉnh thành</div>
+        <div class="top-general" id="genNam">
+          <div class="gen-crown">👑</div>
+          <div class="gen-av"></div>
+          <div class="gen-name">Chưa có Đại Tướng</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- BẢNG QUÀ TẶNG TRỢ LỰC 3 MIỀN (GIFT SHOWCASE BOARD) -->
+  <section class="rm-gift-card" style="position:absolute; left:50px; right:50px; top:1230px; width:980px;">
+    <div class="rgc-head">
+      <span class="rgc-icon">🎁</span>
+      <div class="rgc-head-info">
+        <h3 class="rgc-title">BẢNG QUÀ TẶNG TRỢ LỰC 3 MIỀN</h3>
+        <span class="rgc-sub">Tặng quà tương ứng để bùng nổ điểm số & kéo bục thần thoại!</span>
+      </div>
+      <span class="rgc-badge">⚡ HỎA LỰC SIÊU CẤP</span>
+    </div>
+    <div class="rgc-grid">
+      <div class="rgc-item t1">
+        <div class="rgc-glow"></div>
+        <div class="rgc-gift-icon">🌹</div>
+        <div class="rgc-meta">
+          <div class="rgc-name">Hoa Hồng</div>
+          <div class="rgc-coin"><span class="c-coin">🪙</span> 1 xu</div>
+        </div>
+        <div class="rgc-pts">+3 ĐIỂM</div>
+      </div>
+      <div class="rgc-item t2">
+        <div class="rgc-glow"></div>
+        <div class="rgc-gift-icon">💛</div>
+        <div class="rgc-meta">
+          <div class="rgc-name">Tim Ngón Tay</div>
+          <div class="rgc-coin"><span class="c-coin">🪙</span> 5 xu</div>
+        </div>
+        <div class="rgc-pts">+30 ĐIỂM</div>
+      </div>
+      <div class="rgc-item t3">
+        <div class="rgc-glow"></div>
+        <div class="rgc-gift-icon">🎂</div>
+        <div class="rgc-meta">
+          <div class="rgc-name">Bánh Kem</div>
+          <div class="rgc-coin"><span class="c-coin">🪙</span> 30 xu</div>
+        </div>
+        <div class="rgc-pts">+100 ĐIỂM</div>
+      </div>
+      <div class="rgc-item t4">
+        <div class="rgc-glow"></div>
+        <div class="rgc-gift-icon">🦢</div>
+        <div class="rgc-meta">
+          <div class="rgc-name">Thiên Nga</div>
+          <div class="rgc-coin"><span class="c-coin">🪙</span> 100 xu</div>
+        </div>
+        <div class="rgc-pts">+500 ĐIỂM</div>
+      </div>
+      <div class="rgc-item t5 vip">
+        <div class="rgc-glow"></div>
+        <div class="rgc-gift-icon">🐉</div>
+        <div class="rgc-meta">
+          <div class="rgc-name">Rồng Vàng</div>
+          <div class="rgc-coin"><span class="c-coin">🪙</span> 1,000 xu</div>
+        </div>
+        <div class="rgc-pts vip">+3,000 ĐIỂM</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BẢNG ĐIỂM DANH DƯỠNG & HOẠT ĐỘNG TRỰC TIẾP -->
+  <section id="combatLog">
+    <div id="liveStreamFeed"></div>
+  </section>
+
+  <!-- HƯỚNG DẪN CỘNG ĐIỂM Ở CHÂN TRANG -->
+  <footer id="foot">
+    <div class="rule-pills">
+      <span class="pill">💬 Bình luận quê/miền <b>+1đ</b></span>
+      <span class="pill">❤️ Thả tim <b>+1đ</b></span>
+      <span class="pill hot">➕ Follow kênh <b>+20đ</b></span>
+      <span class="pill vip">🎁 Quà tặng <b>Cộng dồn điểm</b></span>
+    </div>
+  </footer>
+</div>
+
+<div id="soundHint">🔇 Chạm vào màn hình để bật tiếng</div>
+
+<script type="module" src="js/3mien.js"></script>
+</body>
+</html>
+

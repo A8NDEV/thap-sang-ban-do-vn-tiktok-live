@@ -1,0 +1,294 @@
+/* =====================================================================
+   ĐẠI CHIẾN ANH EM 3 MIỀN (BẮC - TRUNG - NAM) — 1080×1920 3D ARENA
+   ===================================================================== */
+:root{
+  --bac:#ff1744;
+  --bac-glow:rgba(255,23,68,0.7);
+  --trung:#ffc400;
+  --trung-glow:rgba(255,196,0,0.7);
+  --nam:#00e5ff;
+  --nam-glow:rgba(0,229,255,0.7);
+  --bg:#070a18;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; user-select:none; }
+html,body{
+  width:100%; height:100%; overflow:hidden; background:#000;
+  font-family:'Be Vietnam Pro',system-ui,sans-serif; color:#fff;
+}
+
+#stage{
+  position:absolute; left:50%; top:50%; width:1080px; height:1920px;
+  transform:translate(-50%,-50%); transform-origin:50% 50%;
+  background:radial-gradient(circle at 50% 30%, #10163a 0%, #060919 60%, #02030a 100%);
+  overflow:hidden;
+}
+
+/* Nền vũ trụ & ánh sáng */
+#stars{
+  position:absolute; inset:0; pointer-events:none;
+  background-image:radial-gradient(1px 1px at 100px 200px, #fff, transparent),
+                   radial-gradient(1.5px 1.5px at 350px 450px, #ffd700, transparent),
+                   radial-gradient(1px 1px at 700px 300px, #00e5ff, transparent),
+                   radial-gradient(1.5px 1.5px at 850px 750px, #ff1744, transparent),
+                   radial-gradient(1px 1px at 200px 950px, #fff, transparent),
+                   radial-gradient(2px 2px at 500px 1150px, #ffd700, transparent),
+                   radial-gradient(1px 1px at 800px 1450px, #00e5ff, transparent),
+                   radial-gradient(1.5px 1.5px at 150px 1650px, #fff, transparent);
+  background-size:1080px 1920px;
+  animation:starsTwinkle 4s ease-in-out infinite alternate;
+}
+@keyframes starsTwinkle{ 0%{ opacity:0.6; } 100%{ opacity:1; } }
+
+#nebula{
+  position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(circle at 20% 40%, rgba(255,23,68,0.12) 0%, transparent 50%),
+             radial-gradient(circle at 50% 50%, rgba(255,196,0,0.12) 0%, transparent 55%),
+             radial-gradient(circle at 80% 40%, rgba(0,229,255,0.12) 0%, transparent 50%);
+  filter:blur(40px);
+}
+
+#fxCanvas{
+  position:absolute; inset:0; pointer-events:none; z-index:30;
+}
+
+/* ---------- TIÊU ĐỀ HOÀNG GIA ---------- */
+#head{
+  position:absolute; left:0; top:40px; width:100%; text-align:center; z-index:20;
+  padding:0 30px;
+}
+.super-badge{
+  display:inline-block; font-size:15px; font-weight:900; letter-spacing:2px;
+  background:linear-gradient(90deg, #ff1744, #ffea00, #00e5ff);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  padding:4px 16px; border-radius:20px; border:1px solid rgba(255,255,255,0.25);
+  background-color:rgba(0,0,0,0.4); margin-bottom:8px;
+  box-shadow:0 0 15px rgba(255,215,0,0.3);
+}
+#title{
+  font-size:56px; font-weight:900; letter-spacing:1.5px; line-height:1.2;
+  background:linear-gradient(180deg, #ffffff 0%, #fff0b8 45%, #ffd700 80%, #ff9100 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 4px 14px rgba(0,0,0,0.8)) drop-shadow(0 0 25px rgba(255,170,0,0.4));
+}
+#sub{
+  font-size:18px; font-weight:600; color:#d2ddf5; margin-top:4px;
+}
+
+/* ---------- THANH GIẰNG CO TAM ĐẤU 3 MÀU ---------- */
+.tri-battle-bar-wrap{
+  position:relative; width:980px; height:46px; margin:22px auto 0;
+  border-radius:24px; padding:4px; background:rgba(10,14,35,0.85);
+  border:2px solid rgba(255,215,0,0.5);
+  box-shadow:0 0 25px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,0,0,0.6);
+}
+.tri-bar{
+  position:relative; width:100%; height:100%; border-radius:18px;
+  display:flex; overflow:hidden;
+}
+.tri-seg{
+  height:100%; display:flex; align-items:center; justify-content:center;
+  transition:width 0.6s cubic-bezier(0.2,0.8,0.3,1); position:relative;
+}
+.tri-seg.bac{
+  background:linear-gradient(90deg, #d50000, #ff1744, #ff5252);
+  box-shadow:inset 0 0 12px rgba(255,255,255,0.3);
+}
+.tri-seg.trung{
+  background:linear-gradient(90deg, #ff8f00, #ffb300, #ffe082);
+  box-shadow:inset 0 0 12px rgba(255,255,255,0.3);
+}
+.tri-seg.nam{
+  background:linear-gradient(90deg, #00b0ff, #00e5ff, #80d8ff);
+  box-shadow:inset 0 0 12px rgba(255,255,255,0.3);
+}
+.seg-lbl{
+  font-size:16px; font-weight:900; letter-spacing:0.8px; white-space:nowrap;
+  text-shadow:0 1px 4px rgba(0,0,0,0.8);
+}
+.seg-lbl b{ font-size:18px; margin-left:4px; }
+
+/* Điểm va chạm giữa các phân đoạn */
+.tri-clash-point{
+  position:absolute; top:-4px; width:12px; height:46px; margin-left:-6px;
+  background:#fff; border-radius:6px; filter:drop-shadow(0 0 8px #fff) drop-shadow(0 0 16px #ffd700);
+  animation:clashPulse 0.5s ease-in-out infinite alternate;
+}
+@keyframes clashPulse{ 0%{ transform:scaleY(0.9); opacity:0.8; } 100%{ transform:scaleY(1.2); opacity:1; } }
+
+/* =====================================================================
+   ĐẤU TRƯỜNG 3D (3 BỆ THẦN & CỘT NĂNG LƯỢNG)
+   ===================================================================== */
+#arena3D{
+  position:absolute; left:0; top:290px; width:1080px; height:1050px;
+  perspective:1300px; z-index:10;
+}
+#perspectiveBox{
+  position:relative; width:100%; height:100%;
+  transform-style:preserve-3d;
+  transform:rotateX(18deg) rotateZ(0deg);
+}
+#floorGrid{
+  position:absolute; left:-100px; top:250px; width:1280px; height:800px;
+  border-radius:50%;
+  background:radial-gradient(ellipse at 50% 50%, rgba(35,50,110,0.35) 0%, rgba(15,25,60,0.15) 50%, transparent 75%);
+  box-shadow:0 0 80px rgba(0,180,255,0.15);
+  transform:rotateX(65deg);
+}
+
+/* 3 Cột năng lượng & Bệ Thần */
+.pillar-wrap{
+  position:absolute; width:310px; height:800px;
+  display:flex; flex-direction:column; align-items:center;
+  transform-style:preserve-3d;
+  transition:transform 0.4s cubic-bezier(0.2,0.8,0.3,1);
+}
+.pillar-wrap.bac{ left:40px; top:120px; }
+.pillar-wrap.trung{ left:385px; top:70px; } /* Đẩy bục giữa cao hơn 1 chút */
+.pillar-wrap.nam{ left:730px; top:120px; }
+
+/* Bệ thần 3D */
+.pedestal{
+  position:absolute; bottom:60px; width:280px; height:140px;
+  display:flex; align-items:center; justify-content:center;
+  transform-style:preserve-3d;
+}
+.base-plate{
+  position:absolute; width:250px; height:90px; border-radius:50%;
+  border:4px solid rgba(255,255,255,0.4);
+  transform:rotateX(60deg);
+}
+.ring{
+  position:absolute; border-radius:50%;
+  transform:rotateX(60deg); animation:ringSpin 6s linear infinite;
+}
+.ring.r1{ width:210px; height:210px; border:2px dashed rgba(255,255,255,0.5); }
+.ring.r2{ width:260px; height:260px; border:1.5px dotted rgba(255,255,255,0.4); animation-direction:reverse; }
+@keyframes ringSpin{ 0%{ transform:rotateX(60deg) rotate(0deg); } 100%{ transform:rotateX(60deg) rotate(360deg); } }
+
+/* Cột sáng chiếu vút lên trời */
+.pillar-beam{
+  position:absolute; bottom:120px; width:160px; height:750px;
+  mix-blend-mode:screen; filter:blur(18px); opacity:0.65;
+  animation:beamGlow 2.5s ease-in-out infinite alternate;
+}
+@keyframes beamGlow{ 0%{ opacity:0.5; transform:scaleX(0.9); } 100%{ opacity:0.85; transform:scaleX(1.15); } }
+
+/* Tùy chỉnh màu sắc riêng từng Miền */
+.pillar-wrap.bac .pillar-beam{ background:linear-gradient(to top, rgba(255,23,68,0.7) 0%, rgba(255,82,82,0.2) 60%, transparent 100%); }
+.pillar-wrap.bac .base-plate{ border-color:var(--bac); box-shadow:0 0 30px var(--bac-glow); background:radial-gradient(circle, rgba(255,23,68,0.3), transparent 70%); }
+.pillar-wrap.bac .ring{ border-color:var(--bac); }
+
+.pillar-wrap.trung .pillar-beam{ background:linear-gradient(to top, rgba(255,196,0,0.7) 0%, rgba(255,224,130,0.2) 60%, transparent 100%); }
+.pillar-wrap.trung .base-plate{ border-color:var(--trung); box-shadow:0 0 30px var(--trung-glow); background:radial-gradient(circle, rgba(255,196,0,0.3), transparent 70%); }
+.pillar-wrap.trung .ring{ border-color:var(--trung); }
+
+.pillar-wrap.nam .pillar-beam{ background:linear-gradient(to top, rgba(0,229,255,0.7) 0%, rgba(128,216,255,0.2) 60%, transparent 100%); }
+.pillar-wrap.nam .base-plate{ border-color:var(--nam); box-shadow:0 0 30px var(--nam-glow); background:radial-gradient(circle, rgba(0,229,255,0.3), transparent 70%); }
+.pillar-wrap.nam .ring{ border-color:var(--nam); }
+
+/* Biểu tượng linh vật thần */
+.hero-crest{
+  font-size:76px; filter:drop-shadow(0 0 15px rgba(255,255,255,0.6));
+  animation:crestFloat 2s ease-in-out infinite alternate;
+  z-index:15;
+}
+@keyframes crestFloat{ 0%{ transform:translateY(0) scale(1); } 100%{ transform:translateY(-12px) scale(1.08); } }
+
+/* Tên miền */
+.reg-name{
+  font-size:28px; font-weight:900; letter-spacing:1px; margin-top:6px;
+  text-shadow:0 2px 8px rgba(0,0,0,0.9); z-index:15;
+}
+.pillar-wrap.bac .reg-name{ color:#ff8a80; text-shadow:0 0 15px var(--bac-glow); }
+.pillar-wrap.trung .reg-name{ color:#ffe57f; text-shadow:0 0 15px var(--trung-glow); }
+.pillar-wrap.nam .reg-name{ color:#80d8ff; text-shadow:0 0 15px var(--nam-glow); }
+
+/* Điểm số khổng lồ */
+.reg-score{
+  font-size:52px; font-weight:900; line-height:1; margin-top:8px;
+  text-shadow:0 3px 12px rgba(0,0,0,0.9); z-index:15;
+  font-variant-numeric:tabular-nums;
+}
+.pillar-wrap.bac .reg-score{ color:#fff; text-shadow:0 0 20px var(--bac-glow); }
+.pillar-wrap.trung .reg-score{ color:#fff; text-shadow:0 0 20px var(--trung-glow); }
+.pillar-wrap.nam .reg-score{ color:#fff; text-shadow:0 0 20px var(--nam-glow); }
+
+.reg-prov-count{
+  font-size:14px; font-weight:700; color:rgba(255,255,255,0.6); margin-top:2px; z-index:15;
+}
+
+/* Đại Tướng Miền (Top 1 đóng góp) */
+.top-general{
+  margin-top:20px; width:220px; padding:10px 12px; border-radius:18px;
+  background:rgba(12,18,40,0.85); border:1.5px solid rgba(255,255,255,0.25);
+  box-shadow:0 8px 24px rgba(0,0,0,0.7); display:flex; flex-direction:column;
+  align-items:center; z-index:15; backdrop-filter:blur(6px);
+}
+.gen-crown{ font-size:24px; filter:drop-shadow(0 0 8px #ffd700); margin-bottom:-4px; }
+.gen-av{
+  width:58px; height:58px; border-radius:50%; border:2.5px solid #ffd700;
+  background:#334 center/cover; box-shadow:0 0 12px rgba(255,215,0,0.6);
+  display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:900;
+}
+.gen-name{
+  font-size:16px; font-weight:800; max-width:190px; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; margin-top:6px; color:#fff;
+}
+
+/* =====================================================================
+   BẢNG HOẠT ĐỘNG THỜI GIAN THỰC & CHÂN TRANG
+   ===================================================================== */
+#combatLog{
+  position:absolute; left:40px; right:40px; top:1510px; height:320px;
+  border-radius:24px; padding:16px; background:rgba(8,12,30,0.7);
+  border:1px solid rgba(255,255,255,0.12); box-shadow:0 10px 30px rgba(0,0,0,0.6);
+  backdrop-filter:blur(8px); overflow:hidden; z-index:20;
+}
+#liveStreamFeed{
+  display:flex; flex-direction:column; gap:10px; justify-content:flex-end; height:100%;
+}
+.combat-card{
+  display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:14px;
+  background:rgba(20,28,60,0.75); border-left:5px solid #fff;
+  animation:feedIn 0.4s ease-out forwards;
+}
+@keyframes feedIn{ 0%{ opacity:0; transform:translateY(15px); } 100%{ opacity:1; transform:translateY(0); } }
+.combat-card.bac{ border-left-color:var(--bac); }
+.combat-card.trung{ border-left-color:var(--trung); }
+.combat-card.nam{ border-left-color:var(--nam); }
+.combat-card .c-icon{ font-size:26px; }
+.combat-card .c-txt{ flex:1; font-size:16.5px; font-weight:700; }
+.combat-card .c-txt b{ color:#ffe082; }
+.combat-card .c-pts{ font-size:20px; font-weight:900; color:#fff; }
+
+#foot{
+  position:absolute; left:0; bottom:25px; width:100%; text-align:center; z-index:20;
+}
+.rule-pills{
+  display:inline-flex; gap:10px; background:rgba(0,0,0,0.6); padding:8px 16px;
+  border-radius:30px; border:1px solid rgba(255,255,255,0.2);
+}
+.pill{ font-size:15px; font-weight:700; color:#d2ddf5; }
+.pill b{ color:#fff; }
+.pill.hot b{ color:#ffe066; text-shadow:0 0 8px rgba(255,224,102,0.8); }
+.pill.vip b{ color:#ff4081; text-shadow:0 0 8px rgba(255,64,129,0.8); }
+
+/* Hiệu ứng rung màn hình */
+.shake-sm{ animation:shakeSm 0.35s ease-out forwards; }
+@keyframes shakeSm{
+  0%,100%{ transform:translate(-50%,-50%); }
+  25%{ transform:translate(calc(-50% - 6px), calc(-50% + 4px)); }
+  75%{ transform:translate(calc(-50% + 6px), calc(-50% - 4px)); }
+}
+.shake-lg{ animation:shakeLg 0.6s cubic-bezier(.36,.07,.19,.97) forwards; }
+@keyframes shakeLg{
+  0%,100%{ transform:translate(-50%,-50%); }
+  15%{ transform:translate(calc(-50% - 14px), calc(-50% + 10px)); }
+  35%{ transform:translate(calc(-50% + 14px), calc(-50% - 10px)); }
+  55%{ transform:translate(calc(-50% - 8px), calc(-50% + 6px)); }
+  75%{ transform:translate(calc(-50% + 8px), calc(-50% - 6px)); }
+}
+
+#soundHint{ position:fixed; left:12px; bottom:12px; background:#c0392b; color:#fff; font:600 14px system-ui; padding:6px 10px; border-radius:8px; display:none; align-items:center; z-index:99; cursor:pointer; }
+

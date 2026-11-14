@@ -1,0 +1,8 @@
+THAP SANG BAN DO VIET NAM - phien ban 2026.11.10.3
+
+1. Giai nen ca thu muc ra o dia (vd. D:\ThapSangBanDo). KHONG chay truc tiep trong file zip.
+2. Bam dup CHAY.bat -> trang dieu khien tu mo (http://localhost:3002/control.html).
+3. Lam theo tab "Huong dan ket noi" tren trang dieu khien (nhap key, ket noi TikTok, them vao OBS / LIVE Studio).
+LIVE bang dien thoai: bam nut "Bat LIVE bang dien thoai" trong trang dieu khien (hoac mo bang CHAY-DIEN-THOAI.bat).
+Cap nhat: trang dieu khien -> tab "Cap nhat & ban quyen" -> Kiem tra cap nhat (du lieu, diem, key giu nguyen).
+Giong MC doc tot nhat khi may co Python + edge-tts:  pip install -U edge-tts
