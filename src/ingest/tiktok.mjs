@@ -3,7 +3,7 @@
 import { broadcast, addLog } from '../core/bus.mjs';
 import { settings } from '../domain/settings.mjs';
 import { save } from '../domain/store.mjs';
-import { onChat, onGift, onLike, onJoin, onFollow } from '../domain/game.mjs';
+import { onChat, onGift, onLike, onJoin, onFollow, onShare } from '../domain/game.mjs';
 import { markRealActivity } from './auto-pacing.mjs';
 import { uidOf, nameOf, avatarOf } from './sanitize.mjs';
 import { giftInfo, giftName, giftPrice } from './gift-prices.mjs';
@@ -50,6 +50,7 @@ export async function connectTikTok(uniqueId){
     c.on(WebcastEvent.MEMBER, d => onJoin(uidOf(d), nameOf(d), avatarOf(d)));
     c.on(WebcastEvent.LIKE, d => { markRealActivity(); onLike(uidOf(d), nameOf(d), d.likeCount || 1, avatarOf(d)); });
     c.on(WebcastEvent.FOLLOW, d => { markRealActivity(); onFollow(uidOf(d), nameOf(d), avatarOf(d)); });
+    c.on(WebcastEvent.SHARE, d => { markRealActivity(); onShare(uidOf(d), nameOf(d), avatarOf(d)); });
     c.on(WebcastEvent.SOCIAL, d => {
       const displayType = String(d.displayType || d.type || d.action || '');
       if (/follow/i.test(displayType)) { markRealActivity(); onFollow(uidOf(d), nameOf(d), avatarOf(d)); }

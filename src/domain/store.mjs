@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import { FILES, readJSON, writeJSON } from '../core/paths.mjs';
 import { settings, applySettings } from './settings.mjs';
 
-export const freshSession = () => ({ start: Date.now(), lastAct: Date.now(), lit: {}, who: {}, pts: {}, gifts: {}, donors: {}, wins: {}, roundNo: 1, roundEnd: 0, last: null });
+export const freshSession = () => ({ start: Date.now(), lastAct: Date.now(), lit: {}, who: {}, pts: {}, gifts: {}, donors: {}, wins: {}, roundNo: 1, roundEnd: 0, last: null, hearts: 0 });
 
 export let S = freshSession();
 export let fans = {};

@@ -11,6 +11,7 @@ import { duelView } from './duel.mjs';
 import { quizActive } from './quiz.mjs';
 import { isChestActive } from './chest.mjs';
 import { createMission } from './mission-logic.mjs';
+import { pollView } from './poll.mjs';   // vòng import với poll.mjs: chỉ dùng bên trong hàm, an toàn
 
 let m = null, prov = '', endsAt = 0, nextAt = 0, lastPush = 0, dirty = false;
 const dyn = t => ({ t, nc: true });
@@ -75,8 +76,8 @@ export function startMissionLoop(){
     if (!settings.missionOn) { nextAt = 0; return; }
     if (!nextAt) { nextAt = now + settings.missionEveryMin * 60_000; return; }
     if (now < nextAt) return;
-    // đang có Đại chiến / câu đố / rương, hoặc phòng vắng 2 phút → hoãn 30 giây
-    if (duelView() || quizActive() || isChestActive() || now - (S.lastAct || 0) > 120_000) { nextAt = now + 30_000; return; }
+    // đang có Đại chiến / câu đố / rương / bình chọn, hoặc phòng vắng 2 phút → hoãn 30 giây
+    if (duelView() || quizActive() || isChestActive() || pollView() || now - (S.lastAct || 0) > 120_000) { nextAt = now + 30_000; return; }
     startMission(now);
   }, 1000).unref();
 }
