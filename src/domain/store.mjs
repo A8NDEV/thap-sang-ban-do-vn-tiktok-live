@@ -15,6 +15,7 @@ export function loadStore(){
   const saved = readJSON(FILES.state, {}) || {};
   if (saved.settings && (saved.v || 1) < 2) { delete saved.settings.idleGapSec; delete saved.settings.likePts; }   // bản rất cũ: MC nghỉ 25 giây, tim có điểm
   if (saved.settings && (saved.v || 1) < 3) { delete saved.settings.voice; delete saved.settings.rate; }           // bản 1.0: giọng nữ tốc độ 0 → giọng nam +15% như Quán Nhậu
+  if (saved.settings && (saved.v || 1) < 4) { if (saved.settings.fullCoins === 10000) delete saved.settings.fullCoins; }       // ngưỡng "cả nước rực sáng" cũ 10000 xu quá cao → dùng mặc định mới (500 xu)
   applySettings(saved.settings);
   if (saved.S && saved.S.lit) {
     S = { ...freshSession(), ...saved.S };
@@ -30,7 +31,7 @@ export function resetSession(keepWins = false){ const wins = S.wins; S = freshSe
 let saveT = null, fansT = null, ownersT = null;
 const writeOwners = () => { try { writeJSON(FILES.owners, owners); } catch {} };
 export function saveOwners(){ clearTimeout(ownersT); ownersT = setTimeout(() => { ownersT = null; writeOwners(); }, 1500); }
-const writeState = () => { try { writeJSON(FILES.state, { v: 3, settings, S }); } catch {} };
+const writeState = () => { try { writeJSON(FILES.state, { v: 4, settings, S }); } catch {} };
 function writeFans(){
   try {
     const ids = Object.keys(fans);

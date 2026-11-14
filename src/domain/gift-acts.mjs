@@ -10,7 +10,7 @@ export const GIFT_ACTS = [
   { id: 'camera', label: 'Camera bay quanh quê', emoji: '🎥', gift: 'TikTok' },
   { id: 'phaohoa', label: 'Pháo hoa cả bản đồ', emoji: '🎆', gift: 'Doughnut' },
   { id: 'daichien', label: 'Mở Đại chiến ngay', emoji: '⚔️', gift: 'Perfume', only: true },
-  { id: 'rong', label: 'Rồng vàng bay', emoji: '🐉', gift: 'Confetti' },
+  { id: 'rong', label: 'Sao băng vàng', emoji: '🌠', gift: 'Confetti' },
   { id: 'casang', label: 'Cả nước rực sáng', emoji: '🎉', gift: '', only: true },
 ];
 export const ACT_IDS = GIFT_ACTS.map(a => a.id);

@@ -1,0 +1,16 @@
+/* Mưa sao băng vàng hội tụ vào tỉnh + vòng hoa văn trống đồng nở ra (quà từ 100 xu). Chỉ transform + opacity. */
+.mt{ position:absolute; left:0; top:0; z-index:26; pointer-events:none; will-change:transform,opacity; }
+.mt .mt-tail{ position:absolute; right:0; top:-3px; width:var(--len,200px); height:6px; border-radius:6px;
+  background:linear-gradient(90deg, rgba(255,210,90,0), rgba(255,226,140,.55) 62%, #fff6c9 100%); }
+.mt .mt-head{ position:absolute; left:-10px; top:-10px; width:20px; height:20px; border-radius:50%;
+  background:radial-gradient(circle, #fff 0%, #ffe27a 42%, rgba(255,180,40,0) 74%); }
+
+.mt-ring{ position:absolute; left:-70px; top:-70px; width:140px; height:140px; border-radius:50%; z-index:26; pointer-events:none;
+  border:5px solid rgba(255,214,102,.95); will-change:transform,opacity; }
+.mt-ring::after{ content:''; position:absolute; inset:14px; border-radius:50%; border:3px dashed rgba(255,236,170,.85); }   /* vòng chấm giống mặt trống đồng */
+
+.mt-star{ position:absolute; left:-60px; top:-60px; width:120px; height:120px; border-radius:50%; z-index:27; pointer-events:none;
+  background:radial-gradient(circle, rgba(255,250,215,.95) 0%, rgba(255,214,102,.55) 35%, rgba(255,180,40,0) 70%); will-change:transform,opacity; }
+.mt-star::before, .mt-star::after{ content:''; position:absolute; left:50%; top:50%; width:170%; height:6px; margin:-3px 0 0 -85%;
+  background:linear-gradient(90deg, rgba(255,246,201,0), #fff6c9, rgba(255,246,201,0)); border-radius:6px; }
+.mt-star::after{ transform:rotate(90deg); }
