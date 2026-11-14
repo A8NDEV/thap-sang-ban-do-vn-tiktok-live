@@ -8,6 +8,7 @@ import { S } from './store.mjs';
 import { say } from '../audio/tts-queue.mjs';
 import { addBonusPts } from './game.mjs';
 import { NAMES } from './provinces.mjs';
+import { settings } from './settings.mjs';
 
 let chest = null;
 let tickTimer = null;
@@ -88,7 +89,7 @@ export function startChest(provName, opts = {}){
   say([
     'Rương Vàng Thần Kỳ xuất hiện!',
     `tại ${prov}.`,
-    `Bà con ${prov} hãy bình luận và tặng quà để mở rương nhận thưởng ${bonusPts} điểm!`,
+    settings.mcGiftCta ? `Bà con ${prov} hãy bình luận và tặng quà để mở rương nhận thưởng ${bonusPts} điểm!` : `Bà con ${prov} hãy bình luận tên tỉnh để mở rương nhận thưởng ${bonusPts} điểm!`,
   ], { tag: 'win' });
 
   clearInterval(tickTimer);

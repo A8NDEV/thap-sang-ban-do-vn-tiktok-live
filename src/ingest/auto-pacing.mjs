@@ -144,6 +144,8 @@ function nextDelay(){
 
 function doPacingStep(){
   if (!running || !settings.autoPacing) return;
+  // chế độ an toàn (tắt "MC kêu gọi tặng quà"): không tạo bình luận / tim / follow / quà ảo; vẫn canh lại để bật lại thì chạy tiếp theo cài đặt autoPacing
+  if (!settings.mcGiftCta) { clearTimeout(autoTimer); autoTimer = setTimeout(doPacingStep, 5000); return; }
 
   const duel = duelView();
   const chest = isChestActive() ? chestView() : null;

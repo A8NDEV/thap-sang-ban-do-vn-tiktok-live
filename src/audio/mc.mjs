@@ -12,6 +12,8 @@ import { say, isBusy, lastSpokenUntil } from './tts-queue.mjs';
 import { duelStaticLines, duelIdleLine, duelView } from '../domain/duel.mjs';
 import { quizDue, startQuiz, quizIdleLine, quizStaticLines } from '../domain/quiz.mjs';
 import { FAKE_TTS, synthesizeTTS, ttsOpts, cacheName, cachedFile, writeCache, stripOi } from './tts-engine.mjs';
+import { effectiveIdleGapSec, ctaAllowed, isFollowLikeCta, isGiftSolicitation, filterIdleLines, createSpokenMemory } from '../domain/safe.mjs';
+import { createInteractPicker, allInteractLines } from './mc-interact.mjs';
 
 const bags = {};
 function bagPick(key, arr){ let b = bags[key]; if (!b || !b.length) { b = bags[key] = [...arr].sort(() => Math.random() - .5); } return b.pop(); }
@@ -71,12 +73,46 @@ const INVITE = [
 ];
 const CALLOUT = ['ơi, quê bạn ở đâu? Comment tên tỉnh để thắp sáng quê mình nhé!', 'ơi, mời bạn thắp một ngọn đèn cho quê hương, comment tên tỉnh là được.', 'ơi, quê bạn chưa sáng đèn đâu, comment tên quê đi nào!'];
 let idleIdx = 0;
-function idleLine(){
+// Khi TẮT "MC kêu gọi tặng quà" (settings.mcGiftCta = false → chế độ an toàn): không đọc câu kêu gọi / hứa thưởng quà;
+// các suất 'donate' đổi thành câu mời thả tim / follow / bình luận / chia sẻ (cách nhau ≥ 75 giây); một câu không lặp lại trong 30 phút.
+// Bật mcGiftCta → hành vi y như trước.
+const idleMem = createSpokenMemory(30 * 60_000);
+const interactPicker = createInteractPicker();
+const interactParts = new WeakSet();
+let lastInteractAt = 0;
+export function resetIdleMemory(){ idleMem.clear(); interactPicker.reset(); lastInteractAt = 0; }
+const partText = p => (p && typeof p === 'object' ? p.t : p);
+const lineKey = parts => parts.map(partText).join(' ');
+export function idleLine(){
+  const safe = !settings.mcGiftCta;
+  if (!safe) return pickIdle(false);
+  const now = Date.now();
+  for (let i = 0; i < 16; i++) {                // thử lần lượt các loại câu cho tới khi gặp câu hợp lệ và chưa nói trong 30 phút
+    const parts = pickIdle(true, now);
+    if (!parts) return null;
+    if (parts.some(p => isGiftSolicitation(partText(p)))) continue;   // chốt chặn cuối: tuyệt đối không đọc câu chèo kéo quà
+    const key = lineKey(parts);
+    if (idleMem.recent(key, now)) continue;
+    idleMem.mark(key, now);
+    if (interactParts.has(parts)) lastInteractAt = now;
+    return parts;
+  }
+  return null;                                   // hết câu mới thì im lặng, không lặp
+}
+function pickIdle(safe, now = Date.now()){
   const kinds = ['donate', 'race', 'callout', 'unlit', 'donate', 'invite', 'callout', 'lead', 'donate', 'fact', 'topdonor', 'callout', 'donate', 'unlit', 'island', 'invite'];
   for (let k = 0; k < kinds.length; k++) {
-    const kind = kinds[idleIdx++ % kinds.length];
+    const k0 = kinds[idleIdx++ % kinds.length], kind = safe && k0 === 'donate' ? 'interact' : k0;
+    if (kind === 'interact') {
+      if (!ctaAllowed(lastInteractAt, now, true, 75_000)) continue;     // hai câu mời tương tác cách nhau ≥ 75 giây
+      const parts = [interactPicker.next().line]; interactParts.add(parts); return parts;
+    }
     if (kind === 'donate') return [bagPick('donate', donateLines())];
-    if (kind === 'invite') return [bagPick('invite', INVITE)];
+    if (kind === 'invite') {
+      const pool = filterIdleLines(safe ? INVITE.filter(l => !isFollowLikeCta(l)) : INVITE, safe);   // an toàn: lời mời follow / thả tim đã nằm trong nhóm 'interact'
+      if (!pool.length) continue;
+      return [bagPick(safe ? 'invite-safe' : 'invite', pool)];
+    }
     if (kind === 'island') return [ISLAND_IDLE];
     if (kind === 'unlit') {
       const un = NAMES.filter(n => !S.lit[n]);
@@ -91,6 +127,7 @@ function idleLine(){
       return [dyn(`Vòng đua ${left ? `còn khoảng ${left} phút` : 'sắp hết giờ'}, ${top[0][0]} đang dẫn đầu với ${top[0][1]} điểm.`), top[1] ? dyn(`${top[1][0]} theo sau với ${top[1][1]} điểm.`) : 'Các quê khác cố lên nào!'];
     }
     if (kind === 'race') {
+      if (safe) continue;       // câu thứ hai "tặng quà kéo quê mình lên nào" là kêu gọi quà
       const top = sortObj(S.pts, 3);
       if (top.length < 2) continue;
       const t = pick(top.slice(1))[0];
@@ -104,13 +141,14 @@ function idleLine(){
       return [c[1].name, bagPick('callout', CALLOUT)];
     }
     if (kind === 'topdonor') {
+      if (safe) continue;       // xếp hạng người tặng + "ai sẽ vượt lên đứng đầu bục vinh danh" là kích thích tặng quà
       const d = Object.values(S.donors).sort((a, b) => b.coins - a.coins)[0];
       if (!d) continue;
       return ['Cảm ơn', d.name, dyn(`đang là người thắp nhiều đèn nhất đêm nay với ${d.coins} xu.`), 'Ai sẽ vượt lên đứng đầu bục vinh danh đây?'];
     }
     if (kind === 'fact') { const ten = pick(NAMES); return ['Bạn có biết?', `${ten}.`, factOf(ten)]; }
   }
-  return [bagPick('donate', donateLines())];
+  return safe ? null : [bagPick('donate', donateLines())];
 }
 
 // MC không để im: đọc xong câu nào là chào người mới vào, không ai thì nói câu tiếp
@@ -126,7 +164,9 @@ export function startMC(){
     if (quizDue()) return void startQuiz();          // MC rảnh + tới lượt → ra câu đố xen kẽ
     const ql = quizIdleLine();                        // đang đố: để người xem nghĩ (≥ 6 giây), nhắc câu hỏi / khều trả lời
     if (ql) { if (quiet >= 6000) say(ql, { tag: 'idle' }); return; }
-    if (settings.idleTalk) say(idleLine(), { tag: 'idle' });
+    if (!settings.idleTalk || quiet < effectiveIdleGapSec(settings.idleGapSec, !settings.mcGiftCta) * 1000) return;   // an toàn: nghỉ ≥ 15 giây giữa các câu nói vu vơ (đố / Đại chiến không đổi)
+    const il = idleLine();
+    if (il) say(il, { tag: 'idle' });
   }, 300);
 }
 
@@ -140,11 +180,12 @@ export function staticLines(){
     ...GIFT_NAMES.flatMap(g => [`đã tặng ${g}!`, `đã tặng ${g}, cảm ơn bạn nhiều lắm!`, `Cảm ơn bạn đã tặng ${g}!`, `ơi, cảm ơn bạn đã tặng ${g}!`]),
     ...GREET_TAIL, ...GREET_MANY, ...CALLOUT, 'vượt qua', ...duelStaticLines(), ...quizStaticLines(),
   ];
+  const safe = !settings.mcGiftCta;   // an toàn: không tải sẵn giọng câu kêu gọi tặng quà, thay bằng câu mời tương tác
   for (const ten of NAMES) out.push(`vừa thắp đèn cho ${ten}.`, `thắp thêm đèn cho ${ten}.`, ...pts.map(p => `Cộng ${p} điểm cho ${ten}.`), `vừa trở thành Chủ tỉnh ${ten}!`);
   for (let n = 5; n < NAMES.length; n += 5) out.push(`Bản đồ đã sáng ${n} trên 34 tỉnh, thành rồi. Còn ${NAMES.length - n} tỉnh nữa thôi!`);
   out.push('Tuyệt vời quá! Cả 34 tỉnh, thành đã sáng đèn. Cảm ơn bà con khắp mọi miền đất nước!',
-    ...donateLines(), ...INVITE, ISLAND_IDLE, ...Object.values(ISLAND_LINE), 'Bạn có biết?', 'Còn một phút nữa là hết vòng đua.', 'Ai quê ở đó vào thắp đèn đi nào!', 'Các quê khác cố lên nào!', 'Quê bạn đang ở đâu, vào thắp đèn đi nào!',
-    'Vòng mới bắt đầu rồi, tặng quà để quê mình về nhất nhé!', 'Đồng hương ơi, tặng quà kéo quê mình lên nào!', 'Ai sẽ vượt lên đứng đầu bục vinh danh đây?',
+    ...(safe ? allInteractLines() : donateLines()), ...filterIdleLines(INVITE, safe), ISLAND_IDLE, ...Object.values(ISLAND_LINE), 'Bạn có biết?', 'Còn một phút nữa là hết vòng đua.', 'Ai quê ở đó vào thắp đèn đi nào!', 'Các quê khác cố lên nào!', 'Quê bạn đang ở đâu, vào thắp đèn đi nào!',
+    ...(safe ? ['Vòng mới bắt đầu rồi, bà con comment tên quê để thắp đèn nhé!'] : ['Vòng mới bắt đầu rồi, tặng quà để quê mình về nhất nhé!', 'Đồng hương ơi, tặng quà kéo quê mình lên nào!', 'Ai sẽ vượt lên đứng đầu bục vinh danh đây?']),
     'Xin chào bà con! Comment tên tỉnh, thành quê mình để thắp một ngọn đèn trên bản đồ Việt Nam nhé.');
   for (const ten of NAMES) out.push(`quê ${ten} đã quay lại, thắp đèn cho ${ten}.`, `quê ${ten} đã quay lại.`, `${ten}.`, `Chúc mừng bà con ${ten}!`, `Về nhì là ${ten}.`, ...INFO[ten].facts);
   return [...new Set(out.map(stripOi))];   // đoạn "ơi, …" đọc thành "tên ơi" + phần sau (joinOi) → tải sẵn phần sau

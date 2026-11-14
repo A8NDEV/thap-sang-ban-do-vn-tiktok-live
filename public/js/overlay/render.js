@@ -74,11 +74,15 @@ export function render(s){
   // đua thắp đèn
   const top = s.round.top, max = Math.max(1, ...top.map(x => x.pts));
   flipList($('#race'), top.length ? top.map((x, i) => `<div class="row ${i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : ''}" data-id="${esc(x.prov)}"><div class="fill" style="width:${x.pts / max * 100}%"></div>${rkBadge(i + 1)}<div class="pn">${esc(short(x.prov))}${s.wins[x.prov] ? `<small>🏆${s.wins[x.prov]}</small>` : ''}</div><div class="pt">${x.pts}</div></div>`).join('')
-    : `<div class="empty">Vòng đua bắt đầu khi có người thắp đèn.<br>Comment, tặng quà để cộng điểm cho quê!</div>`);
+    : `<div class="empty">Vòng đua bắt đầu khi có người thắp đèn.<br>${s.look?.safe ? 'Comment tên quê để cộng điểm cho quê!' : 'Comment, tặng quà để cộng điểm cho quê!'}</div>`);
   // quà
   const g = s.gifts, gm = Math.max(1, ...g.map(x => x.coins));
   flipList($('#gifts'), g.length ? g.map((x, i) => `<div class="row ${i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : ''}" data-id="${esc(x.prov)}"><div class="fill" style="width:${x.coins / gm * 100}%"></div>${rkBadge(i + 1)}<div class="pn">${esc(short(x.prov))}</div><div class="pt">${x.coins}</div></div>`).join('')
     : `<div class="empty">Chưa có quà.<br>Tặng quà để quê bạn lên bảng nhé 🎁</div>`);
+  // chế độ an toàn TikTok: không hiện bảng quà, bảng xu→điểm, lời mời tặng quà
+  const safe = !!s.look?.safe;
+  const giftCard = $('#giftCard'); if (giftCard) giftCard.style.display = safe ? 'none' : '';
+  const podSub = $('#podLbl small'); if (podSub) { podSub.dataset.orig ??= podSub.textContent; podSub.textContent = safe ? 'cảm ơn bà con đã ủng hộ' : podSub.dataset.orig; }
   // bảng điểm (bậc quà)
   const r = s.rules, T = r.tiers || [];
   const range = i => T[i + 1] ? (T[i + 1][0] - 1 > T[i][0] ? `${T[i][0]}–${T[i + 1][0] - 1} xu` : `${T[i][0]} xu`) : `từ ${T[i][0]} xu`;
@@ -86,15 +90,15 @@ export function render(s){
   $('#how').innerHTML = `<div class="tier"><span>💬 Mỗi comment</span><b>+${r.commentPts}</b></div>`
     + (r.likePts ? `<div class="tier"><span>❤️ Mỗi tim</span><b>+${r.likePts}</b></div>` : '')
     + (r.followPts ? `<div class="tier"><span>➕ Mỗi follow</span><b>+${r.followPts}</b></div>` : '')
-    + T.slice(0, (r.likePts && r.followPts) ? 2 : (r.likePts || r.followPts) ? 3 : 4).map(([, p], i) => `<div class="tier"><span>🎁 ${range(i)}</span><b>+${fmt(p)}</b></div>`).join('')
-    + (r.fullCoins ? `<div class="tier full"><span>🎆 ${fmt(r.fullCoins)} xu</span><b>CẢ NƯỚC RỰC SÁNG</b></div>` : '');
+    + (safe ? [] : T).slice(0, (r.likePts && r.followPts) ? 2 : (r.likePts || r.followPts) ? 3 : 4).map(([, p], i) => `<div class="tier"><span>🎁 ${range(i)}</span><b>+${fmt(p)}</b></div>`).join('')
+    + (r.fullCoins && !safe ? `<div class="tier full"><span>🎆 ${fmt(r.fullCoins)} xu</span><b>CẢ NƯỚC RỰC SÁNG</b></div>` : '');
   // thực đơn quà (giống Sàn Quẩy): hình quà + hành động — thẻ này luân phiên với bảng điểm
   menu = s.menu || [];
   $('#gmenu').innerHTML = menu.map(m => `<div class="gm"><img src="${esc(m.img)}" alt="" referrerpolicy="no-referrer"><span><b>${esc(m.gift)} <small>${m.coins} xu</small></b><em>${m.emoji} ${esc(m.label)}</em></span></div>`).join('');
   if (!menu.length) showHow(true);
   // vinh danh người tặng nhiều
   const d = s.donors || [], order = [1, 0, 2];
-  $('#podBars').innerHTML = d.length ? order.filter(i => d[i]).map(i => `<div class="pd p${i + 1}"><div class="pav" data-i="${i}"></div><div class="blk">${['🥇', '🥈', '🥉'][i]} ${d[i].coins}<small style="font-size:14px">xu</small></div><div class="pnm"></div></div>`).join('') : '<div class="empty" style="margin:auto">Tặng quà để được vinh danh ở đây 🎁</div>';
+  $('#podBars').innerHTML = d.length ? order.filter(i => d[i]).map(i => `<div class="pd p${i + 1}"><div class="pav" data-i="${i}"></div><div class="blk">${['🥇', '🥈', '🥉'][i]} ${d[i].coins}<small style="font-size:14px">xu</small></div><div class="pnm"></div></div>`).join('') : `<div class="empty" style="margin:auto">${safe ? 'Cảm ơn bà con đã ủng hộ 💛' : 'Tặng quà để được vinh danh ở đây 🎁'}</div>`;
   for (const el of $('#podBars').querySelectorAll('.pav')) { const x = d[+el.dataset.i]; avatar(el, x.name, x.avatar); const lc = levelClass(x.level); if (lc) el.classList.add(lc); el.parentElement.querySelector('.pnm').textContent = x.name; }
 }
 
