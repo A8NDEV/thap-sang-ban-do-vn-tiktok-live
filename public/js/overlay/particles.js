@@ -155,16 +155,26 @@ export function launchMassiveFireworks() {
   });
 }
 
-// Rung chấn màn hình
-let shakeT = null;
+// Rung chấn màn hình. KHÔNG dùng animation CSS lên #stage: stage.js đã đặt transform: scale(k) để khung vừa cửa sổ,
+// animation CSS sẽ GHI ĐÈ transform đó nên khung phóng về 1080×1920 và dính góc trên-trái trong lúc rung.
+// Ở đây ghép phép dịch chuyển SAU phép scale hiện tại (WAAPI), nên khung luôn giữ đúng kích thước.
+const SHAKE = {
+  sm: { ms: 380, ease: 'ease-out', f: [[0, 0, 1], [-4, 3, 1], [4, -3, 1], [-3, -1, 1], [2, 2, 1], [0, 0, 1]], at: [0, .2, .4, .6, .8, 1] },
+  lg: { ms: 650, ease: 'cubic-bezier(.36,.07,.19,.97)', f: [[0, 0, 1], [-10, 7, 1.008], [9, -8, 1.008], [-7, 5, 1.004], [6, -4, 1.002], [-4, 2, 1], [3, -1, 1], [0, 0, 1]], at: [0, .15, .3, .45, .6, .75, .9, 1] },
+};
+let shakeAnim = null;
 export function screenShake(level = 'sm') {
   const st = $('#stage');
-  if (!st) return;
-  st.classList.remove('shake-sm', 'shake-lg');
-  void st.offsetWidth;
-  st.classList.add(level === 'lg' ? 'shake-lg' : 'shake-sm');
-  clearTimeout(shakeT);
-  shakeT = setTimeout(() => st.classList.remove('shake-sm', 'shake-lg'), level === 'lg' ? 650 : 380);
+  if (!st || typeof st.animate !== 'function') return;
+  try { shakeAnim?.cancel(); } catch { /* bỏ qua */ }
+  const cfg = level === 'lg' ? SHAKE.lg : SHAKE.sm;
+  const base = st.style.transform || '';
+  const frames = cfg.f.map(([x, y, k], i) => ({ transform: `${base} translate(${x}px, ${y}px)${k !== 1 ? ` scale(${k})` : ''}`, offset: cfg.at[i] }));
+  try {
+    const a = st.animate(frames, { duration: cfg.ms, easing: cfg.ease });
+    shakeAnim = a;
+    a.onfinish = a.oncancel = () => { if (shakeAnim === a) shakeAnim = null; };
+  } catch { shakeAnim = null; }
 }
 
 // Hạt stardust bay theo rồng vàng
