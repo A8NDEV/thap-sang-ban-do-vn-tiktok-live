@@ -1,0 +1,31 @@
+/* Thẻ nhiệm vụ 60 giây (fx-mission.js): góc trái trên, stage x 24-424, y ~250-350. */
+/* Chỉ transform + opacity được animate; ẩn thì visibility:hidden sau khi mờ xong. */
+.msn{
+  position:absolute; left:24px; top:250px; width:400px; height:100px; z-index:28; box-sizing:border-box;
+  padding:10px 18px 12px; border-radius:20px;
+  background:linear-gradient(135deg, rgba(12,30,60,.95), rgba(8,14,34,.97));
+  border:3px solid #6fc3ff; box-shadow:0 0 0 3px rgba(80,160,255,.3), 0 8px 24px rgba(0,0,0,.6);
+  pointer-events:none; visibility:hidden; opacity:0; transform:translateX(-40px);
+  transition:opacity .35s, transform .35s, visibility 0s .35s;
+  will-change:transform,opacity;
+  font-family:'Be Vietnam Pro','Noto Serif',system-ui,sans-serif; color:#eaf4ff;
+}
+.msn.show{ visibility:visible; opacity:1; transform:none; transition:opacity .35s, transform .35s, visibility 0s; }
+body.lite .msn, body.lite .msn.show{ transition:none; }
+.msn-k{
+  font-size:22px; font-weight:900; line-height:1.2; color:#bfe3ff; letter-spacing:.5px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.msn-row{ display:flex; align-items:baseline; justify-content:space-between; margin-top:2px; }
+.msn-n{ font-size:34px; font-weight:900; line-height:1.1; color:#fff; }
+.msn-t{ font-size:22px; font-weight:800; color:#ffd25c; }
+.msn-bar{ margin-top:6px; height:14px; border-radius:8px; background:rgba(255,255,255,.16); overflow:hidden; }
+.msn-fill{
+  width:100%; height:100%; border-radius:8px; background:linear-gradient(90deg, #4fc3ff, #7dffb0);
+  transform-origin:0 50%; transform:scaleX(0); transition:transform .3s linear; will-change:transform;
+}
+body.lite .msn-fill{ transition:none; }
+.msn.won{ border-color:#ffd25c; box-shadow:0 0 0 3px rgba(255,200,60,.45), 0 8px 24px rgba(0,0,0,.6); }
+.msn.won .msn-fill{ background:linear-gradient(90deg, #ffd25c, #fff0a0); }
+.msn.lost{ border-color:#8a94a6; }
+.msn.lost .msn-fill{ background:#8a94a6; }

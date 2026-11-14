@@ -3,6 +3,7 @@ import { $, esc, avatar, short, tweenNum, flipList } from './util.js';
 import { applyLook } from './theme.js';
 import { P, placeLabel } from './map.js';
 import { playSfx } from './audio.js';
+import { levelClass } from './fx-donors.js';
 
 let state = null, clockOff = 0, hotT = null;
 export const getState = () => state;
@@ -94,7 +95,7 @@ export function render(s){
   // vinh danh người tặng nhiều
   const d = s.donors || [], order = [1, 0, 2];
   $('#podBars').innerHTML = d.length ? order.filter(i => d[i]).map(i => `<div class="pd p${i + 1}"><div class="pav" data-i="${i}"></div><div class="blk">${['🥇', '🥈', '🥉'][i]} ${d[i].coins}<small style="font-size:14px">xu</small></div><div class="pnm"></div></div>`).join('') : '<div class="empty" style="margin:auto">Tặng quà để được vinh danh ở đây 🎁</div>';
-  for (const el of $('#podBars').querySelectorAll('.pav')) { const x = d[+el.dataset.i]; avatar(el, x.name, x.avatar); el.parentElement.querySelector('.pnm').textContent = x.name; }
+  for (const el of $('#podBars').querySelectorAll('.pav')) { const x = d[+el.dataset.i]; avatar(el, x.name, x.avatar); const lc = levelClass(x.level); if (lc) el.classList.add(lc); el.parentElement.querySelector('.pnm').textContent = x.name; }
 }
 
 export function clearMarks(){ for (const v of Object.values(P)) { v.mk?.remove(); v.mk = null; } }

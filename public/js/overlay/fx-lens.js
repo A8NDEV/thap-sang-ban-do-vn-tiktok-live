@@ -5,6 +5,7 @@ import { P } from './map.js';
 import { isLite } from './theme.js';
 import { qualityLevel } from './fx-perf.js';
 import { giftTier, createBudget } from './fx-cinema-logic.js';
+import { levelClass } from './fx-donors.js';
 
 if (typeof document !== 'undefined' && !document.getElementById('fx-lens-css')) {
   const link = document.createElement('link');
@@ -62,7 +63,7 @@ function fitViewBox(svg, g, p, origPath) {
   p.setAttribute('stroke-width', String(+(side * 0.012).toFixed(3)));
 }
 
-export function showLens({ prov, name, avatar: avatarUrl, gift, coins } = {}) {
+export function showLens({ prov, name, avatar: avatarUrl, gift, coins, level } = {}) {
   try {
     if (!lensOn) return;
     if (isLite()) return;
@@ -94,6 +95,8 @@ export function showLens({ prov, name, avatar: avatarUrl, gift, coins } = {}) {
 
       const av = div('lens-av');
       avatar(av, name, avatarUrl);
+      const lc = level > 0 ? levelClass(level) : '';
+      if (lc) av.classList.add(lc);
       const l1 = div('lens-name');
       l1.textContent = clip(name);
       const l2 = div('lens-gift');

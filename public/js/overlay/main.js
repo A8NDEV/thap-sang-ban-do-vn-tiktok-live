@@ -14,6 +14,8 @@ import { lanternRise, bigGiftCinema } from './fx-cinema.js';
 import { setFpsMeter } from './fx-perf.js';
 import { showLens, setLensOn } from './fx-lens.js';
 import { setSoftZoom } from './fx-camera.js';
+import { showLevelUp, showOvertake, applyBannerFrame } from './fx-donors.js';
+import { renderMission, missionWin, missionEnd } from './fx-mission.js';
 
 setupStage();
 initParticles($('#fxCanvas'));
@@ -28,7 +30,11 @@ startAmbient();
 startThemeAmbient();
 
 const handlers = {
-  state: s => { render(s); setFpsMeter(!!s.look?.showFps); setLensOn(s.look?.lensOn !== false); setSoftZoom(!!s.look?.softZoom); },
+  state: s => { render(s); setFpsMeter(!!s.look?.showFps); setLensOn(s.look?.lensOn !== false); setSoftZoom(!!s.look?.softZoom); renderMission(s.mission); },
+  levelUp: showLevelUp,
+  overtake: showOvertake,
+  missionWin,
+  missionEnd,
   light: m => {
     registerCombo(m.prov);
     if (m.fresh) {
@@ -93,15 +99,16 @@ const handlers = {
       banner(
         `🎁 ${m.name} TẶNG ${String(m.gift).toUpperCase()}`,
         `+${Number(m.pts).toLocaleString('vi-VN')} ĐIỂM`,
-        m.prov ? `cho quê ${m.prov}` : 'comment tên quê để nhận điểm!',
+        (m.prov ? `cho quê ${m.prov}` : 'comment tên quê để nhận điểm!') + (m.lvNext ? ` · còn ${m.lvNeed} xu lên ${m.lvNext}` : ''),
         bannerDur,
         m
       );
+      applyBannerFrame(m.lv);
     }
 
     // 5. Cảnh điện ảnh cho quà lớn
     if (m.coins >= 100) bigGiftCinema({ prov: m.prov, name: m.name, gift: m.gift, coins: m.coins });
-    if (m.coins >= 100 && m.prov) showLens({ prov: m.prov, name: m.name, avatar: m.avatar, gift: m.gift, coins: m.coins });
+    if (m.coins >= 100 && m.prov) showLens({ prov: m.prov, name: m.name, avatar: m.avatar, gift: m.gift, coins: m.coins, level: m.lv });
   },
   winner: m => {
     playSfx('fanfare');
