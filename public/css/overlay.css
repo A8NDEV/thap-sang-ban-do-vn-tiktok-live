@@ -184,15 +184,64 @@ body.clear #stars{ display:none; }
 #cd.hot{ color:#ff7a59; animation:blink 1s infinite; }
 @keyframes blink{ 50%{ opacity:.45; } }
 .rows{ margin-top:10px; display:flex; flex-direction:column; gap:8px; }
-.row{ position:relative; height:54px; border-radius:12px; background:rgba(255,255,255,.06); overflow:hidden; display:flex; align-items:center; padding:0 12px; gap:10px; }
+.row{ position:relative; height:54px; border-radius:12px; background:rgba(255,255,255,.06); overflow:hidden; display:flex; align-items:center; padding:0 12px; gap:10px; transition:border-color .3s, background .3s; }
+.row.top1{ background:linear-gradient(90deg,rgba(255,180,0,.15),rgba(255,215,0,.06)); border:1.5px solid rgba(255,215,0,.5); box-shadow:0 0 16px rgba(255,180,0,.25); }
+.row.top2{ background:rgba(220,240,255,.08); border:1px solid rgba(200,230,255,.35); }
+.row.top3{ background:rgba(255,160,80,.08); border:1px solid rgba(255,160,80,.35); }
 .row .fill{ position:absolute; left:0; top:0; bottom:0; background:linear-gradient(90deg,rgba(255,159,28,.55),rgba(255,210,92,.25)); border-radius:12px; transition:width .7s; }
-.row .rk{ position:relative; width:30px; height:30px; border-radius:50%; background:#23365f; font-weight:900; font-size:16px; display:flex; align-items:center; justify-content:center; }
-.row:nth-child(1) .rk{ background:linear-gradient(#ffe27a,#f0a020); color:#3a2200; }
-.row:nth-child(2) .rk{ background:linear-gradient(#f2f5fb,#a9b4c8); color:#1a2440; }
-.row:nth-child(3) .rk{ background:linear-gradient(#ffc9a0,#c4733a); color:#2a1200; }
+.row.top1 .fill{ background:linear-gradient(90deg,rgba(255,140,0,.7),rgba(255,215,0,.4)); }
+
+/* Huy hiệu xếp hạng (Rank Badge) */
+.row .rk{ position:relative; width:34px; height:34px; flex:none; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+/* Top 1: Vương miện vàng lấp lánh */
+.row .rk.rk-1, .row:nth-child(1) .rk{
+  width:36px; height:36px;
+  background:radial-gradient(circle, rgba(255,215,0,.35) 0%, rgba(255,140,0,.18) 70%, transparent 100%);
+  border:1.5px solid rgba(255,215,0,.75);
+  box-shadow:0 0 14px rgba(255,193,7,.75), inset 0 0 8px rgba(255,215,0,.35);
+  color:#ffe27a;
+}
+.row .rk.rk-1 .rk-ico{
+  font-size:24px; line-height:1; display:block;
+  filter:drop-shadow(0 0 6px #ffd700) drop-shadow(0 0 14px #ff9100);
+  animation:crownPulse 2s ease-in-out infinite alternate;
+}
+@keyframes crownPulse{
+  0%{ transform:scale(1); filter:drop-shadow(0 0 5px #ffd700) drop-shadow(0 0 10px #ff9100); }
+  100%{ transform:scale(1.15); filter:drop-shadow(0 0 9px #fff275) drop-shadow(0 0 18px #ff6d00); }
+}
+/* Top 2: Huy chương bạc */
+.row .rk.rk-2, .row:nth-child(2) .rk{
+  width:34px; height:34px;
+  background:radial-gradient(circle, rgba(220,240,255,.3) 0%, rgba(140,175,220,.15) 70%, transparent 100%);
+  border:1.5px solid rgba(200,230,255,.65);
+  box-shadow:0 0 12px rgba(180,220,255,.6), inset 0 0 6px rgba(220,240,255,.3);
+  color:#eef4ff;
+}
+.row .rk.rk-2 .rk-ico{ font-size:22px; line-height:1; display:block; filter:drop-shadow(0 0 6px rgba(220,240,255,.9)); }
+/* Top 3: Huy chương đồng */
+.row .rk.rk-3, .row:nth-child(3) .rk{
+  width:34px; height:34px;
+  background:radial-gradient(circle, rgba(255,160,80,.3) 0%, rgba(190,90,30,.15) 70%, transparent 100%);
+  border:1.5px solid rgba(255,160,80,.65);
+  box-shadow:0 0 12px rgba(255,140,50,.6), inset 0 0 6px rgba(255,160,80,.3);
+  color:#ffd4b0;
+}
+.row .rk.rk-3 .rk-ico{ font-size:22px; line-height:1; display:block; filter:drop-shadow(0 0 6px rgba(255,140,50,.9)); }
+/* Từ Top 4: Số thứ tự to, rõ, sáng sủa */
+.row .rk.rk-sub, .row:nth-child(n+4) .rk{
+  width:32px; height:32px;
+  background:rgba(255,255,255,.12);
+  border:1.5px solid rgba(255,255,255,.35);
+  box-shadow:0 2px 8px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.3);
+  color:#fff;
+}
+.row .rk .rk-num{ font-size:18px; font-weight:900; line-height:1; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.9), 0 0 6px rgba(255,255,255,.4); font-variant-numeric:tabular-nums; }
 .row .pn{ position:relative; flex:1; font-size:19px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.row.top1 .pn{ color:#fff9e6; text-shadow:0 0 8px rgba(255,215,0,.4); }
 .row .pn small{ font-size:13px; color:var(--gold); font-weight:700; margin-left:4px; }
 .row .pt{ position:relative; font-size:19px; font-weight:900; color:#ffe27a; font-variant-numeric:tabular-nums; }
+.row.top1 .pt{ font-size:21px; color:#fff1a8; text-shadow:0 0 10px rgba(255,210,90,.7); }
 .empty{ margin-top:16px; font-size:17px; color:var(--dim); text-align:center; line-height:1.45; }
 
 /* --- BẢNG ĐIỂM THẮP ĐÈN & THỰC ĐƠN QUÀ (đổi lên vị trí 3, to hơn, rõ hơn) --- */
@@ -222,7 +271,10 @@ body.clear #stars{ display:none; }
 #giftCard h3{ font-size:18px; letter-spacing:0.8px; white-space:nowrap; }
 #giftCard .rows{ margin-top:9px; gap:6px; }
 #giftCard .row{ height:44px; padding:0 10px; gap:8px; border-radius:10px; }
-#giftCard .row .rk{ width:26px; height:26px; font-size:15px; }
+#giftCard .row .rk{ width:28px; height:28px; }
+#giftCard .row .rk.rk-1 .rk-ico{ font-size:20px; }
+#giftCard .row .rk.rk-2 .rk-ico, #giftCard .row .rk.rk-3 .rk-ico{ font-size:18px; }
+#giftCard .row .rk.rk-sub .rk-num{ font-size:15px; }
 #giftCard .row .pn{ font-size:18px; font-weight:800; }
 #giftCard .row .pt{ font-size:19px; font-weight:900; }
 #giftCard .pt::after{ content:' xu'; font-size:13px; color:#cfe0ff; }
