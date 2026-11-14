@@ -10,6 +10,7 @@ import { startThemeAmbient } from './theme-fx.js';
 import { playVoice, stopVoice, setMusic, playSfx, MUTE } from './audio.js';
 import { initParticles, screenShake } from './particles.js';
 import { registerCombo } from './combo.js';
+import { lanternRise, bigGiftCinema } from './fx-cinema.js';
 
 setupStage();
 initParticles($('#fxCanvas'));
@@ -31,6 +32,7 @@ const handlers = {
       playSfx('boom');
       screenShake('sm');
       shot({ prov: m.prov, tag: '🏮 ' + m.name, big: true, comet: true });
+      lanternRise(m.prov);
     } else if (m.newPerson) {
       playSfx('light');
       shot({ prov: m.prov, tag: '🏮 ' + m.name, big: false, comet: true });
@@ -93,6 +95,9 @@ const handlers = {
         m
       );
     }
+
+    // 5. Cảnh điện ảnh cho quà lớn
+    if (m.coins >= 100) bigGiftCinema({ prov: m.prov, name: m.name, gift: m.gift, coins: m.coins });
   },
   winner: m => {
     playSfx('fanfare');

@@ -1,0 +1,63 @@
+/* Hiệu ứng điện ảnh (fx-cinema.js). Chỉ transform + opacity được animate; không filter/backdrop-filter. */
+
+/* Đèn lồng giấy: thân đỏ cam, nắp + viền vàng, tua rua */
+.cn-lantern{
+  position:absolute; width:22px; height:26px; margin:-13px 0 0 -11px;
+  border-radius:48% 48% 44% 44% / 56% 56% 44% 44%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 4px, rgba(255,214,110,.28) 4px 5px),
+    radial-gradient(ellipse at 50% 38%, #ff9650 0%, #ee3d1f 55%, #a80f14 100%);
+  border:1.5px solid #ffd25c;
+  box-shadow:0 0 8px 1px rgba(255,140,40,.55);
+  pointer-events:none; will-change:transform,opacity;
+}
+.cn-lantern::before{ /* nắp vàng + dây treo */
+  content:""; position:absolute; left:50%; top:-6px; width:10px; height:4px; margin-left:-5px;
+  background:linear-gradient(#ffe08a,#e0a21f); border-radius:2px 2px 0 0;
+  box-shadow:0 -3px 0 -1px #e0a21f;
+}
+.cn-lantern::after{ /* tua rua */
+  content:""; position:absolute; left:50%; bottom:-11px; width:2px; height:9px; margin-left:-1px;
+  background:linear-gradient(#ffd25c,#e0771a); border-radius:1px;
+  box-shadow:-2px 7px 0 -0.5px #ffb02e, 2px 7px 0 -0.5px #ffb02e;
+}
+
+/* Tàn lửa */
+.cn-ember{
+  position:absolute; width:5px; height:5px; margin:-2.5px 0 0 -2.5px; border-radius:50%;
+  background:radial-gradient(circle, #fff3c4 0%, #ffc94a 45%, #ff8a1c 100%);
+  pointer-events:none; will-change:transform,opacity;
+}
+
+/* Cảnh quà lớn */
+.cn-bar{
+  position:absolute; left:0; right:0; height:120px; background:#000;
+  z-index:40; pointer-events:none; will-change:transform;
+}
+.cn-bar.top{ top:0; }
+.cn-bar.bot{ bottom:0; }
+
+.cn-rays{
+  position:absolute; left:50%; top:50%; width:1400px; height:1400px; margin:-700px 0 0 -700px;
+  border-radius:50%; z-index:39; pointer-events:none; will-change:transform,opacity;
+  background:repeating-conic-gradient(from 0deg, rgba(255,214,110,.9) 0 5deg, transparent 5deg 20deg);
+  -webkit-mask-image:radial-gradient(circle, #000 0%, rgba(0,0,0,.6) 40%, transparent 70%);
+  mask-image:radial-gradient(circle, #000 0%, rgba(0,0,0,.6) 40%, transparent 70%);
+  opacity:0;
+}
+
+.cn-title{
+  position:absolute; left:0; right:0; top:44%; text-align:center; z-index:41; pointer-events:none;
+  padding:0 40px; font-family:'Be Vietnam Pro','Noto Serif',system-ui,sans-serif; font-weight:900;
+  will-change:transform,opacity; opacity:0;
+}
+.cn-name{
+  font-size:40px; line-height:1.2; color:#fff4d6; letter-spacing:1px;
+  text-shadow:0 2px 0 #7a3b00, 0 0 18px rgba(255,170,40,.65);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.cn-gift{
+  margin-top:8px; font-size:64px; line-height:1.12; color:#ffd25c; letter-spacing:1px;
+  text-shadow:0 3px 0 #8a3f00, 0 0 28px rgba(255,150,30,.8), 0 6px 18px rgba(0,0,0,.7);
+}
+.cn-title.t3 .cn-gift{ color:#ffe27a; }
