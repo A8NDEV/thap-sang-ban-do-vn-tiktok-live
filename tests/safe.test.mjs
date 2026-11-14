@@ -139,17 +139,19 @@ test('staticLines (tải sẵn giọng): an toàn không có câu kêu gọi qu�
   assert.ok(staticLines().filter(isGiftSolicitation).length > 10);
 });
 
-test('game: raceTail, snapshot theo mcGiftCta', () => {
+test('game: mcGiftCta chỉ đổi lời MC, snapshot / menu / look không đổi', () => {
   seedState();
   settings.mcGiftCta = false;
   assert.equal(raceTail('Đà Nẵng'), 'Đà Nẵng đang đứng thứ 3, cố lên!');
-  let sn = snapshot();
-  assert.equal(sn.look.safe, true);
-  assert.deepEqual(sn.menu, []);
+  const off = snapshot();
+  assert.equal('safe' in off.look, false);
   settings.mcGiftCta = true;
   assert.match(raceTail('Đà Nẵng'), /Chỉ cần thêm quà/);
-  sn = snapshot();
-  assert.equal(sn.look.safe, false);
+  const on = snapshot();
+  assert.deepEqual(off.menu, on.menu);                // thực đơn quà không bị ẩn
+  assert.equal(settings.giftMenuOn ? on.menu.length > 0 : on.menu.length === 0, true);
+  assert.deepEqual(Object.keys(off.look), Object.keys(on.look));
+  assert.deepEqual(off.rules, on.rules);
   assert.equal(raceTail('Hà Nội'), 'Hà Nội đang dẫn đầu vòng đua, hơn Huế 40 điểm!');
 });
 

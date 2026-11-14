@@ -16,7 +16,6 @@ import { showLens, setLensOn } from './fx-lens.js';
 import { setSoftZoom } from './fx-camera.js';
 import { showLevelUp, showOvertake, applyBannerFrame } from './fx-donors.js';
 import { renderMission, missionWin, missionEnd } from './fx-mission.js';
-import './fx-safe.js';
 
 setupStage();
 initParticles($('#fxCanvas'));
@@ -31,7 +30,7 @@ startAmbient();
 startThemeAmbient();
 
 const handlers = {
-  state: s => { render(s); setFpsMeter(!!s.look?.showFps); setLensOn(s.look?.lensOn !== false); setSoftZoom(!!s.look?.softZoom); renderMission(s.mission); document.documentElement.dataset.safe = s.look?.safe ? '1' : '0'; },
+  state: s => { render(s); setFpsMeter(!!s.look?.showFps); setLensOn(s.look?.lensOn !== false); setSoftZoom(!!s.look?.softZoom); renderMission(s.mission); },
   levelUp: showLevelUp,
   overtake: showOvertake,
   missionWin,

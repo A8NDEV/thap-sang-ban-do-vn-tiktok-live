@@ -1,4 +1,0 @@
-/* Chế độ an toàn TikTok: ẩn mọi thứ nhắc tặng quà / quy đổi xu → điểm. html[data-safe="1"] do main.js đặt. */
-html[data-safe="1"] .rm-gift-card,
-html[data-safe="1"] #gmenu,
-html[data-safe="1"] .lvu-s { display: none !important; }
