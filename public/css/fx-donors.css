@@ -36,6 +36,9 @@
   opacity:0; pointer-events:none; will-change:transform,opacity;
   font-family:'Be Vietnam Pro','Noto Serif',system-ui,sans-serif;
 }
+/* thẻ nhiệm vụ (.msn) hoặc bình chọn (.pol) đang hiện ở x 24-424: dời thẻ lên cấp sang phải, x 440-1060, để không đè */
+.msn.show ~ .lvu, .pol.show ~ .lvu{ left:440px; width:620px; padding:0 24px 0 18px; gap:16px; }
+.msn.show ~ .lvu .lvu-k, .pol.show ~ .lvu .lvu-k{ font-size:30px; letter-spacing:.5px; }
 .lvu .dn-av{ width:78px; height:78px; font-size:34px; }
 .lvu-tx{ min-width:0; flex:1; }
 .lvu-k{
@@ -47,9 +50,9 @@
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 
-/* dải vượt hạng: rộng 900, y ~640 */
+/* dải vượt hạng: rộng 900, y 620-770 (không chạm #banner y 780) */
 .ovt{
-  position:absolute; left:90px; top:640px; width:900px; height:150px; z-index:27; box-sizing:border-box;
+  position:absolute; left:90px; top:620px; width:900px; height:150px; z-index:27; box-sizing:border-box;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:8px 24px;
   border-radius:28px;
   background:linear-gradient(90deg, rgba(60,10,10,.94), rgba(18,9,2,.97) 50%, rgba(10,30,60,.94));

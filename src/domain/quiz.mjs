@@ -7,6 +7,8 @@ import { QUIZ } from './quiz-bank.mjs';
 import { say } from '../audio/tts-queue.mjs';
 import { awardPts, pushNow, dyn } from './game.mjs';
 import { duelView } from './duel.mjs';
+import { pollView } from './poll.mjs';        // vòng import: chỉ dùng bên trong hàm, an toàn
+import { missionView } from './mission.mjs';   // vòng import: chỉ dùng bên trong hàm, an toàn
 
 // đáp án 1 chữ (Lý, Trần, tỏi…) chỉ tính khi bình luận ngắn — tránh "vô lý" thành đúng
 const PREP = QUIZ.map(x => ({ ...x, n: x.a.map(a => ({ k: norm(a), short: norm(a).trim().split(' ').length === 1 })) }));
@@ -32,7 +34,7 @@ export const quizView = () => cur && {
 // tới lượt câu đố chưa (startMC hỏi khi MC đang rảnh)
 export function quizDue(){
   const now = Date.now();
-  if (!settings.quizOn || cur || duelView()) return false;
+  if (!settings.quizOn || cur || duelView() || pollView() || missionView()) return false;   // không chạy chồng bình chọn / nhiệm vụ
   if (!sinceAt) { sinceAt = now; return false; }
   return now >= sinceAt + settings.quizEveryMin * 60_000;
 }

@@ -15,7 +15,7 @@ const { settings } = await import('../src/domain/settings.mjs');
 const { S, fans } = await import('../src/domain/store.mjs');
 const { _setPrepare } = await import('../src/audio/tts-queue.mjs');
 const { textOf } = await import('../src/audio/tts-engine.mjs');
-const { onGift } = await import('../src/domain/game.mjs');
+const { onGift, _resetLevelSay } = await import('../src/domain/game.mjs');
 
 const spoken = [], events = [];
 setBroadcaster(m => events.push(m));
@@ -23,7 +23,7 @@ _setPrepare(async parts => { spoken.push(textOf(parts)); return { url: 'x', byte
 
 async function giftOnce(cta, uid){
   settings.mcGiftCta = cta; settings.levelOn = true; settings.overtakeOn = true;
-  spoken.length = 0; events.length = 0;
+  spoken.length = 0; events.length = 0; _resetLevelSay();   // bỏ thời gian chờ lời MC cấp/hạng giữa hai lần thử
   fans[uid] = { name: 'Lan', home: 'Hà Nội', seen: Date.now() };
   onGift(uid, 'Lan', 'Tim ngón tay', 1, 15, '');   // 15 xu → cấp Đồng, còn xu để lên Bạc
   await new Promise(r => setTimeout(r, 1200));

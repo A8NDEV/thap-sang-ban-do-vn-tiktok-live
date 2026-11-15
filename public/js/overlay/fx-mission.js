@@ -134,6 +134,7 @@ export function missionWin(ev) {
 export function missionEnd(ev) {
   try {
     const m = ev || {};
+    if (m.cancel) { hide(); card?.classList.remove('won', 'lost'); return; } // tắt nhiệm vụ giữa chừng: ẩn ngay, không chữ "Chưa đủ lần này"
     if (!ensureCard()) return;
     card.classList.remove('won');
     card.classList.add('lost');

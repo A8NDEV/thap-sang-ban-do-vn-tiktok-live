@@ -2,7 +2,6 @@
 // Logic đếm nằm ở mission-logic.mjs (thuần, có test); file này chỉ lo lịch, phát sự kiện, lời MC.
 // Chỉ người thật: game.mjs đã lọc bot (isBotUid) trước khi gọi missionOnChat.
 import { settings } from './settings.mjs';
-import { S } from './store.mjs';
 import { NAMES } from './provinces.mjs';
 import { say } from '../audio/tts-queue.mjs';
 import { broadcast, addLog } from '../core/bus.mjs';
@@ -14,7 +13,11 @@ import { createMission } from './mission-logic.mjs';
 import { pollView } from './poll.mjs';   // vòng import với poll.mjs: chỉ dùng bên trong hàm, an toàn
 
 let m = null, prov = '', endsAt = 0, nextAt = 0, lastPush = 0, dirty = false;
+let lastReal = 0;   // lần cuối có người THẬT comment (S.lastAct cũng bị bot cập nhật nên không dùng)
 const dyn = t => ({ t, nc: true });
+
+// trần mỗi người < target: một mình không thể tự hoàn thành nhiệm vụ
+export const perUserCap = target => Math.max(1, Math.min(5, Math.ceil(target / 2)));
 
 export function missionView(){
   if (!m) return null;
@@ -25,6 +28,7 @@ export function missionView(){
 
 // chỉ gọi cho người thật; đếm khi comment có tên đúng tỉnh của nhiệm vụ
 export function missionOnChat(uid, provs){
+  lastReal = Date.now();
   if (!m || !Array.isArray(provs) || !provs.includes(prov)) return;
   const now = Date.now();
   if (!m.hit(uid, now)) return;
@@ -34,8 +38,7 @@ export function missionOnChat(uid, provs){
 function startMission(now){
   prov = NAMES[Math.floor(Math.random() * NAMES.length)];
   const sec = settings.missionSec, target = settings.missionTarget;
-  // trần mỗi người < target: một mình không thể tự hoàn thành nhiệm vụ
-  m = createMission({ target, durationMs: sec * 1000, perUserCap: Math.max(1, Math.min(5, Math.ceil(target / 2))) });
+  m = createMission({ target, durationMs: sec * 1000, perUserCap: perUserCap(target) });
   m.begin(now, `Comment "${prov}"`);
   endsAt = now + sec * 1000; lastPush = 0; dirty = false;
   addLog(`🎯 Nhiệm vụ ${sec} giây: comment "${prov}" đủ ${target} lần`);
@@ -57,8 +60,8 @@ function endMission(result, now){
     addLog(`🎯 Nhiệm vụ ${p} chưa đủ (${v.count}/${v.target})`);
     broadcast({ t: 'missionEnd', won: false, count: v.count, target: v.target });
     say([dyn(`Tiếc quá, chưa đủ lần comment ${p}. Lần sau mình cố lên nhé!`)], { tag: 'win' });
-  } else {   // 'cancel': tắt nhiệm vụ giữa chừng, không thưởng, không đọc
-    broadcast({ t: 'missionEnd', won: false, count: v.count, target: v.target });
+  } else {   // 'cancel': tắt nhiệm vụ giữa chừng, không thưởng, không đọc; overlay ẩn thẻ ngay
+    broadcast({ t: 'missionEnd', won: false, cancel: true, count: v.count, target: v.target });
   }
   pushNow();
 }
@@ -76,8 +79,8 @@ export function startMissionLoop(){
     if (!settings.missionOn) { nextAt = 0; return; }
     if (!nextAt) { nextAt = now + settings.missionEveryMin * 60_000; return; }
     if (now < nextAt) return;
-    // đang có Đại chiến / câu đố / rương / bình chọn, hoặc phòng vắng 2 phút → hoãn 30 giây
-    if (duelView() || quizActive() || isChestActive() || pollView() || now - (S.lastAct || 0) > 120_000) { nextAt = now + 30_000; return; }
+    // đang có Đại chiến / câu đố / rương / bình chọn, hoặc 2 phút chưa có người thật comment → hoãn 30 giây
+    if (duelView() || quizActive() || isChestActive() || pollView() || now - lastReal > 120_000) { nextAt = now + 30_000; return; }
     startMission(now);
   }, 1000).unref();
 }

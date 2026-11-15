@@ -36,6 +36,7 @@ export function detectOvertake(before, after, uid, maxRank = 5) {
   if (rank > max) return null;
   const oldIdx = b.findIndex((r) => r && r.uid === uid);
   if (oldIdx >= 0 && oldIdx + 1 <= rank) return null;
+  const me = a[idx];
   let passed = null;
   const below = a[idx + 1];
   if (below) {
@@ -45,5 +46,8 @@ export function detectOvertake(before, after, uid, maxRank = 5) {
       if (belowOld >= 0 && belowOld < oldIdx) passed = brief(below);
     }
   }
+  // hòa xu không phải vượt: chỉ tính khi xu mới LỚN HƠN hẳn xu người bị vượt (thứ tự hòa chỉ do tên/uid)
+  if (passed && !(me.coins > below.coins)) passed = null;
+  if (oldIdx >= 0 && !passed) return null;   // đã có trong bảng mà không vượt ai thật sự (chỉ hòa xu): không có cảnh
   return { rank, passed };
 }

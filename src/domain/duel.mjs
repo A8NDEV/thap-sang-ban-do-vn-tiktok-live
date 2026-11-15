@@ -5,6 +5,8 @@ import { S } from './store.mjs';
 import { settings } from './settings.mjs';
 import { say } from '../audio/tts-queue.mjs';
 import { pushNow } from './game.mjs';
+import { pollView } from './poll.mjs';        // vòng import: chỉ dùng bên trong hàm, an toàn
+import { missionView } from './mission.mjs';   // vòng import: chỉ dùng bên trong hàm, an toàn
 
 let duel = null, nextAt = 0, warned = false, midSaid = false, lastCheer = 0, cheerIdx = 0;
 const dyn = t => ({ t, nc: true });
@@ -77,6 +79,8 @@ export function startDuelLoop(){
     if (now < nextAt) return;
     // vòng đua sắp hết → hoãn, không để đại chiến cắt ngang lúc công bố thắng
     if (!S.roundEnd || S.roundEnd - now < (settings.duelSec + 15) * 1000 || top2().length < 2) { nextAt = now + 30_000; return; }
+    // đang có bình chọn / nhiệm vụ → hoãn 30 giây, không chạy chồng
+    if (pollView() || missionView()) { nextAt = now + 30_000; return; }
     startDuel();
   }, 500);
 }

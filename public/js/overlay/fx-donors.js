@@ -114,7 +114,7 @@ export function showLevelUp(ev) {
   } catch { /* hiệu ứng phụ */ }
 }
 
-// Cảnh vượt hạng: dải ngang rộng 900 ở y ~640, vào bằng translateX, ⚡ phóng nhẹ.
+// Cảnh vượt hạng: dải ngang rộng 900 ở y ~620 (kết thúc ~770, trên #banner y 780), vào bằng translateX, ⚡ phóng nhẹ.
 const OT_TOTAL = 2800, OT_IN = 380, OT_OUT = 380;
 export function showOvertake(ev) {
   try {
@@ -154,7 +154,7 @@ export function showOvertake(ev) {
       { transform: 'scale(1)' },
     ], {})]));
     if (!ok) return;
-    try { screenShake('sm'); } catch { /* bỏ qua */ }
+    if (qualityLevel() < 2) { try { screenShake('sm'); } catch { /* bỏ qua */ } }   // máy yếu: bỏ rung như đã bỏ ⚡
     try { playSfx('thunder'); } catch { /* bỏ qua */ }
   } catch { /* hiệu ứng phụ */ }
 }

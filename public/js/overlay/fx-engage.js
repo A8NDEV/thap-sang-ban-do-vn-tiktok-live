@@ -33,6 +33,24 @@ const div = (cls, text) => {
 let hCard = null, hText = null, hFill = null;
 let hShown = false, hLastText = '', hLastScale = -1;
 let pollShown = false; // thẻ bình chọn đang hiện -> hạ thanh tim xuống
+let hView = null, coverIv = null; // view tim mới nhất; bộ kiểm tra 0,5 giây chỉ chạy lúc thanh bị thẻ khác che
+
+// thẻ Đại chiến (#duel, lớp .show) hoặc rương (#chestWrap, thuộc tính hidden) đang hiện: thanh tim (y 360-416) có thể che đáy thẻ
+function coveredByCard() {
+  try {
+    const d = $('#duel'), c = $('#chestWrap');
+    return !!((d && d.classList.contains('show')) || (c && !c.hidden));
+  } catch { return false; }
+}
+
+function stopCover() { if (coverIv !== null) { clearInterval(coverIv); coverIv = null; } }
+
+function applyHeartVis() {
+  if (!hCard || !hView) { stopCover(); return; }
+  const want = !coveredByCard();
+  if (want !== hShown) { hShown = want; hCard.classList.toggle('show', want); }
+  if (!want) { if (coverIv === null) coverIv = setInterval(applyHeartVis, 500); } else stopCover();
+}
 
 function ensureHearts() {
   if (hCard && hCard.isConnected) return hCard;
@@ -52,7 +70,9 @@ function ensureHearts() {
 
 export function renderHearts(view) {
   try {
+    hView = view || null;
     if (!view) {
+      stopCover();
       if (hShown && hCard) { hShown = false; hCard.classList.remove('show'); }
       return;
     }
@@ -62,7 +82,7 @@ export function renderHearts(view) {
     if (text !== hLastText) { hLastText = text; hText.textContent = text; }
     const r = Math.min(1, Math.max(0, num(view.pct) / 100));
     if (r !== hLastScale) { hLastScale = r; hFill.style.transform = `scaleX(${r})`; }
-    if (!hShown) { hShown = true; hCard.classList.add('show'); }
+    applyHeartVis(); // ẩn (opacity 0 + visibility hidden sau khi mờ) khi thẻ Đại chiến / rương đang hiện, hiện lại khi chúng ẩn
   } catch { /* hiệu ứng phụ: không bao giờ làm hỏng luồng chính */ }
 }
 
@@ -104,15 +124,31 @@ function heartRain(count) {
   }
 }
 
+const HEART_CD = 8000; // hai mốc tim liên tiếp trong 8 giây: bỏ banner + pháo hoa, chỉ còn mưa tim nhẹ
+let hLastMs = 0;
+
 export function heartMilestone(ev) {
   try {
     const m = ev || {};
     const n = num(m.milestone) || num(m.total);
-    try {
-      banner(`❤️ ĐỦ ${fmt(n)} LƯỢT TIM`, 'CẢM ƠN BÀ CON', 'cùng thả tim cho quê hương nào!', 5000);
-    } catch { /* bỏ qua */ }
+    const now = Date.now(), gap = now - hLastMs;
+    const cooling = hLastMs > 0 && gap >= 0 && gap < HEART_CD;
+    if (!cooling) {
+      hLastMs = now;
+      let busy = false;
+      try { busy = !!$('#banner')?.classList.contains('show'); } catch { /* bỏ qua */ }
+      if (!busy) { // banner khác đang hiện thì không đè
+        try {
+          banner(`❤️ ĐỦ ${fmt(n)} LƯỢT TIM`, 'CẢM ƠN BÀ CON', 'cùng thả tim cho quê hương nào!', 5000);
+        } catch { /* bỏ qua */ }
+      }
+    }
     if (isLite()) return;
     const q = qualityLevel();
+    if (cooling) {
+      if (rainBudget.active === 0) heartRain(q >= 2 ? 3 : 6); // mưa nhẹ, chỉ khi chưa có mưa nào
+      return;
+    }
     if (q < 2) {
       try { launchMassiveFireworks(); } catch { /* bỏ qua */ }
     }
@@ -143,7 +179,9 @@ export function showShare(ev) {
       el = div('shr');
       const av = div('shr-av');
       avatar(av, name, typeof ev.avatar === 'string' ? ev.avatar : '');
-      el.append(av, div('shr-tx', `🔗 ${name} vừa chia sẻ live!`));
+      const tx = div('shr-tx');
+      tx.append(div('shr-n', `🔗 ${name}`), div('shr-s', 'vừa chia sẻ live!'));
+      el.append(av, tx);
       stage.appendChild(el);
       setTimeout(finish, SHARE_TOTAL + 600);
       const tIn = SHARE_IN / SHARE_TOTAL, tOut = 1 - SHARE_OUT / SHARE_TOTAL;

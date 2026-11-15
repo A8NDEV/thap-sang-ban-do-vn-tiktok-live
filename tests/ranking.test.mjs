@@ -197,3 +197,27 @@ test('detectOvertake: passed is null when the person directly below was already 
   const after2 = [row('a', 50), row('x', 45), row('d', 20)];
   assert.equal(detectOvertake(before, after2, 'x'), null);
 });
+
+// ---- hòa xu: chỉ vượt khi xu mới LỚN HƠN hẳn ----
+
+test('detectOvertake: tying the person above by coins is not an overtake (name order only)', () => {
+  const before = [row('z', 40, 'Zed'), row('a', 30, 'An')];
+  const after = [row('a', 40, 'An'), row('z', 40, 'Zed')];   // hòa 40: An đứng trước chỉ nhờ tên
+  assert.equal(detectOvertake(before, after, 'a'), null);
+});
+
+test('detectOvertake: strictly more coins passes the person above', () => {
+  const before = [row('z', 40, 'Zed'), row('a', 30, 'An')];
+  const after = [row('a', 41, 'An'), row('z', 40, 'Zed')];
+  assert.deepEqual(detectOvertake(before, after, 'a'), { rank: 1, passed: { uid: 'z', name: 'Zed', avatar: '' } });
+});
+
+test('detectOvertake: new donor tying the person below enters the top but passes nobody', () => {
+  const before = [row('a', 50, 'An'), row('z', 40, 'Zed')];
+  const after = [row('a', 50, 'An'), row('n', 40, 'Nam'), row('z', 40, 'Zed')];
+  assert.deepEqual(detectOvertake(before, after, 'n'), { rank: 2, passed: null });
+});
+
+test('detectOvertake: first donor of the session has nothing to pass (game.mjs skips the event for an empty before)', () => {
+  assert.deepEqual(detectOvertake([], [row('n', 5)], 'n'), { rank: 1, passed: null });
+});
