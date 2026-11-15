@@ -9,7 +9,7 @@ import { startAmbient } from './theme.js';
 import { startThemeAmbient } from './theme-fx.js';
 import { playVoice, stopVoice, setMusic, playSfx, MUTE } from './audio.js';
 import { initParticles, screenShake } from './particles.js';
-import { registerCombo } from './combo.js';
+import { registerCombo, syncComboStyle } from './combo.js';
 import { lanternRise, bigGiftCinema } from './fx-cinema.js';
 import { setFpsMeter } from './fx-perf.js';
 import { showLens, setLensOn } from './fx-lens.js';
@@ -17,6 +17,10 @@ import { setSoftZoom } from './fx-camera.js';
 import { showLevelUp, showOvertake, applyBannerFrame } from './fx-donors.js';
 import { renderMission, missionWin, missionEnd } from './fx-mission.js';
 import { renderHearts, heartMilestone, showShare, renderPoll, pollEnd } from './fx-engage.js';
+import { setFxOptions, fxOn } from './fx-options.js';
+import { startAmbient as startFxAmbient, stopAmbient as stopFxAmbient } from './fx-ambient.js';
+import { lightWave } from './fx-wave.js';
+import { showNameBurst } from './fx-names.js';
 
 setupStage();
 initParticles($('#fxCanvas'));
@@ -31,7 +35,7 @@ startAmbient();
 startThemeAmbient();
 
 const handlers = {
-  state: s => { render(s); setFpsMeter(!!s.look?.showFps); setLensOn(s.look?.lensOn !== false); setSoftZoom(!!s.look?.softZoom); renderMission(s.mission); renderHearts(s.hearts); renderPoll(s.poll); },
+  state: s => { render(s); setFpsMeter(!!s.look?.showFps); setLensOn(s.look?.lensOn !== false); setSoftZoom(!!s.look?.softZoom); renderMission(s.mission); renderHearts(s.hearts); renderPoll(s.poll); setFxOptions(s.look?.fx); fxOn('ambient') ? startFxAmbient() : stopFxAmbient(); syncComboStyle(); },
   levelUp: showLevelUp,
   overtake: showOvertake,
   missionWin,
@@ -46,6 +50,8 @@ const handlers = {
       screenShake('sm');
       shot({ prov: m.prov, tag: '🏮 ' + m.name, big: true, comet: true });
       lanternRise(m.prov);
+      if (fxOn('wave')) lightWave(m.prov);
+      if (fxOn('name')) showNameBurst({ name: m.name, prov: m.prov });
     } else if (m.newPerson) {
       playSfx('light');
       shot({ prov: m.prov, tag: '🏮 ' + m.name, big: false, comet: true });

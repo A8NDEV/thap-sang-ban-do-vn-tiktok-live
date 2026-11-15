@@ -3,6 +3,20 @@
 import { $ } from './util.js';
 import { P } from './map.js';
 import { playSfx } from './audio.js';
+import { fxOn } from './fx-options.js';
+
+// Kiểu combo đẹp hơn: chỉ nạp fx-combo.css khi cờ fxOn('combo') bật, gỡ khi tắt. Idempotent, gọi mỗi lần nhận `state`.
+export function syncComboStyle() {
+  const link = document.getElementById('fx-combo-css');
+  if (fxOn('combo')) {
+    if (link) return;
+    const l = document.createElement('link');
+    l.id = 'fx-combo-css';
+    l.rel = 'stylesheet';
+    l.href = new URL('../../css/fx-combo.css', import.meta.url).href;
+    document.head?.appendChild(l);
+  } else if (link) link.remove();
+}
 
 const combos = new Map(); // ten -> { count, lastAt, timer, el }
 const COMBO_TIMEOUT = 5000; // 5 giây không có thêm comment -> tắt chuỗi combo

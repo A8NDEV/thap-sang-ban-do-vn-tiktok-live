@@ -1,0 +1,49 @@
+/* Combo thắp đèn đẹp hơn: số to, màu theo cấp (x3 vàng, x10 cam, x25 đỏ-tím), vòng sáng nhịp thở.
+   Nạp SAU overlay.css (combo.js chèn khi bật hiệu ứng) và dùng tiền tố `html` để chắc chắn thắng.
+   Bóng đổ chỉ TĨNH; mọi chuyển động chỉ dùng transform + opacity. */
+html .combo-badge{
+  --cb:#ffc94a; --cb2:#ff9f1c;
+  gap:8px; padding:6px 18px 6px 12px; border-radius:22px;
+  background:linear-gradient(135deg,rgba(48,28,0,.93),rgba(96,58,0,.93));
+  border:3px solid var(--cb); box-shadow:0 0 18px rgba(255,190,60,.7), 0 4px 10px rgba(0,0,0,.7);
+}
+html .combo-badge .combo-flame{ font-size:32px; }
+html .combo-badge .combo-prov{ font-size:14px; color:#ffe9a8; letter-spacing:1.5px; }
+html .combo-badge .combo-num{ font-size:20px; text-shadow:0 0 8px rgba(255,170,40,.9); }
+html .combo-badge .combo-num b{ font-size:38px; margin-left:4px; line-height:1; color:var(--cb); text-shadow:0 2px 0 rgba(60,30,0,.8), 0 0 14px rgba(255,190,60,.9); }
+
+/* vòng sáng nhịp thở quanh huy hiệu */
+html .combo-badge::after{ content:''; position:absolute; left:-8px; top:-8px; right:-8px; bottom:-8px; border-radius:28px; pointer-events:none;
+  border:3px solid var(--cb); opacity:0; will-change:transform,opacity; animation:fxComboRing 1.5s ease-out infinite; }
+@keyframes fxComboRing{
+  0%{ transform:scale(.96); opacity:.7; }
+  100%{ transform:scale(1.22); opacity:0; }
+}
+
+/* x10: cam */
+html .combo-badge.tier-2{
+  --cb:#ff8a1f; --cb2:#ff5a00;
+  background:linear-gradient(135deg,rgba(84,24,0,.95),rgba(140,50,0,.95));
+  box-shadow:0 0 26px rgba(255,110,20,.85), 0 4px 10px rgba(0,0,0,.7);
+}
+html .combo-badge.tier-2 .combo-flame{ font-size:38px; }
+html .combo-badge.tier-2 .combo-num b{ font-size:46px; color:var(--cb); text-shadow:0 2px 0 rgba(70,20,0,.85), 0 0 16px rgba(255,120,20,.95); }
+
+/* x25: đỏ-tím, ngọn lửa thở bằng transform */
+html .combo-badge.tier-3{
+  --cb:#e8307a; --cb2:#9b2cff;
+  background:linear-gradient(135deg,rgba(70,8,70,.96),rgba(150,14,64,.96));
+  box-shadow:0 0 32px rgba(232,48,122,.95), 0 0 54px rgba(155,44,255,.55), 0 4px 10px rgba(0,0,0,.7);
+  animation:fxComboBreath 1.1s ease-in-out infinite alternate;
+}
+html .combo-badge.tier-3 .combo-flame{ font-size:44px; }
+html .combo-badge.tier-3 .combo-num b{ font-size:54px; color:#fff; text-shadow:0 2px 0 rgba(60,0,50,.85), 0 0 14px #e8307a, 0 0 26px #9b2cff; }
+html .combo-badge.tier-3::after{ animation-duration:1.1s; border-color:#b455ff; }
+@keyframes fxComboBreath{
+  0%{ transform:translate(-50%,-100%) scale(1); }
+  100%{ transform:translate(-50%,-100%) scale(1.07); }
+}
+
+@media (prefers-reduced-motion: reduce){
+  html .combo-badge::after{ animation:none; }
+}

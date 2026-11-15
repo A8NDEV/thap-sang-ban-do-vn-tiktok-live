@@ -1,0 +1,5 @@
+/* Tên chữ lớn khi tỉnh sáng lần đầu. Chỉ transform + opacity; text-shadow TĨNH (không animate). */
+.nm-burst{ position:absolute; left:0; top:0; z-index:27; pointer-events:none; white-space:nowrap; line-height:1.15;
+  font-size:40px; font-weight:900; letter-spacing:1px; color:#ffd25c;
+  text-shadow:0 3px 0 rgba(60,30,0,.75), 0 0 12px rgba(255,170,40,.65); }
+.nm-burst span{ display:inline-block; white-space:pre; opacity:0; will-change:transform,opacity; }
