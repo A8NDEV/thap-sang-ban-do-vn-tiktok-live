@@ -1,4 +1,4 @@
-// Cảnh mở màn ~5 giây: tên "THẮP SÁNG BẢN ĐỒ VIỆT NAM" hiện từng chữ ở đầu vùng bản đồ, các tỉnh hiện lần lượt Bắc -> Nam.
+// Cảnh mở màn ~5 giây: dòng "CÙNG THẮP SÁNG 34 TỈNH, THÀNH" hiện từng chữ ở đầu vùng bản đồ, các tỉnh hiện lần lượt Bắc -> Nam.
 // Chỉ animate transform + opacity (WAAPI) trên phần tử đường; KHÔNG đổi class hay dữ liệu: animate xong là trả về trạng thái thật.
 // Không chiếu chồng. Tự chiếu tối đa một lần mỗi lần tải trang (maybeAutoIntro); nút thủ công (force) luôn chiếu.
 import { $ } from './util.js';
@@ -15,7 +15,7 @@ if (typeof document !== 'undefined' && !document.getElementById('fx-intro-css'))
   document.head?.appendChild(link);
 }
 
-const TITLE = 'THẮP SÁNG BẢN ĐỒ VIỆT NAM';
+const TITLE = 'CÙNG THẮP SÁNG 34 TỈNH, THÀNH';   // khác tiêu đề lớn ở đầu màn hình để không bị trùng chữ
 const STAGGER = 35, IN = 400, OUT = 700;
 const PROV_STEP = 60, PROV_DUR = 500;
 
