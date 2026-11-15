@@ -17,7 +17,7 @@ if (typeof document !== 'undefined' && !document.getElementById('fx-names-css'))
 }
 
 const MAX_CHARS = 22, STAGGER = 40, IN = 360, HOLD = 1400, OUT = 900;
-const X_MIN = 24, X_MAX = 1056, Y_MIN = 240;
+const X_MIN = 24, X_MAX = 736, Y_MIN = 240;   // X_MAX 736: không tràn sang cột thẻ bên phải (cột thẻ bắt đầu ở x = 744)
 const sceneBudget = createBudget(1);
 const rnd = (a, b) => a + Math.random() * (b - a);
 
@@ -49,7 +49,7 @@ export function showNameBurst({ name, prov } = {}) {
     const spans = letters.map(ch => { const s = document.createElement('span'); s.textContent = ch; box.appendChild(s); return s; });
     stage.appendChild(box);
 
-    // kẹp vị trí để khung chữ nằm trong 24..1056 ngang và không cao quá y = 240
+    // kẹp vị trí để khung chữ nằm trong 24..736 ngang và không cao quá y = 240
     const w = box.offsetWidth || 0, h = box.offsetHeight || 0;
     const left = Math.min(Math.max(cx - w / 2, X_MIN), Math.max(X_MIN, X_MAX - w));
     const top = Math.max(cy - 70 - h / 2, Y_MIN);
