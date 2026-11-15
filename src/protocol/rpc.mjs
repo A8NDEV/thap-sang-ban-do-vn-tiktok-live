@@ -75,6 +75,7 @@ export const METHODS = {
   'duel.stop': () => { stopDuel(); return { ok: true }; },
   'chest.drop': p => { const r = startChest(p?.prov, p); need(r.ok, r.error); return r; },
   'chest.stop': () => { const r = stopChest(); need(r.ok, r.error); return r; },
+  'fx.intro': () => { broadcast({ t: 'intro' }); return { ok: true }; },
   'regions.get': () => getRegionsSnapshot(),
   'regions.reset': () => { resetRegionsScore(); return { ok: true }; },
   'regions.open': () => toggle3MienModal(true),

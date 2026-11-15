@@ -92,6 +92,7 @@ $('#btnQuiz').onclick = () => call('quiz.start');
 $('#btnQuizStop').onclick = () => call('quiz.stop');
 $('#btnChest').onclick = () => call('chest.drop');
 $('#btnChestStop').onclick = () => call('chest.stop');
+if ($('#btnIntro')) $('#btnIntro').onclick = () => call('fx.intro');
 const open3Mien = () => window.open('/3mien.html', '_blank', 'width=540,height=960');
 if ($('#btn3Mien')) $('#btn3Mien').onclick = open3Mien;
 if ($('#btnPlay3Mien')) $('#btnPlay3Mien').onclick = open3Mien;
