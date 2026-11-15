@@ -1,5 +1,5 @@
 /* Bầu trời đổi theo giờ: hai lớp A/B chồng nhau, chuyển màu bằng opacity. */
 #skyTint{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
-#skyTint .sk-l{ position:absolute; inset:0; opacity:0; transition:opacity 4s ease-in-out; will-change:opacity; }
+#skyTint .sk-l{ position:absolute; inset:0; opacity:0; transition:opacity 4s ease-in-out; }
 #skyTint .sk-l.show{ opacity:1; }
 body.clear #skyTint{ display:none; }

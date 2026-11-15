@@ -27,7 +27,7 @@ const SILENT = (() => {
 })();
 
 // Chỉ đọc trạng thái (hiệu ứng đập theo nhạc dùng): MC đang nói / nhạc nền đang phát. Không đụng tới luồng âm thanh.
-export function audioState(){ return { talking: !!talking, music: music.on && !bgm.paused && !bgm.ended && bgm.readyState > 0 }; }
+export function audioState(){ return { talking: !!talking, music: !!(music.on && !bgm.paused && !bgm.ended && bgm.readyState > 0) }; }
 function setTalk(on){ talking = on; $('#mcTag').classList.toggle('talk', on); bgmVol(); }
 function bgmVol(){ bgm.volume = Math.max(0, Math.min(1, music.vol / 100)); }   // giữ nguyên âm lượng, không hạ khi MC nói
 function nextSong(){

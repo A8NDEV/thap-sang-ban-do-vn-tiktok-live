@@ -31,3 +31,8 @@ test('fxFlags: thiếu settings hoặc thiếu khóa -> toàn false', () => {
 test('fxFlags: bỏ qua khóa lạ', () => {
   assert.deepEqual(Object.keys(fxFlags({ foo: 1, fxAmbient: true })).sort(), [...KEYS].sort());
 });
+
+test('mặc định trong settings.mjs: 6 hiệu ứng nhẹ bật, đập theo nhạc và hoa theo miền tắt', async () => {
+  const { settings } = await import('../src/domain/settings.mjs');
+  assert.deepEqual(fxFlags(settings), { ambient: true, wave: true, name: true, combo: true, sky: true, intro: true, beat: false, region: false });
+});

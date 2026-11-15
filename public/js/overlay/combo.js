@@ -4,11 +4,12 @@ import { $ } from './util.js';
 import { P } from './map.js';
 import { playSfx } from './audio.js';
 import { fxOn } from './fx-options.js';
+import { isLite } from './theme.js';
 
 // Kiểu combo đẹp hơn: chỉ nạp fx-combo.css khi cờ fxOn('combo') bật, gỡ khi tắt. Idempotent, gọi mỗi lần nhận `state`.
 export function syncComboStyle() {
   const link = document.getElementById('fx-combo-css');
-  if (fxOn('combo')) {
+  if (fxOn('combo') && !isLite()) {   // chế độ nhẹ: không nạp kiểu combo (vòng sáng vô hạn)
     if (link) return;
     const l = document.createElement('link');
     l.id = 'fx-combo-css';
