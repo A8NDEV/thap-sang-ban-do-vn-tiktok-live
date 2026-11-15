@@ -68,7 +68,7 @@ const handlers = {
     }
   },
   follow: m => {
-    if (m.prov) lanternRise(m.prov);
+    if (m.prov && !m.isBot) lanternRise(m.prov);
     playSfx('chime');
     if (m.prov) {
       shot({
