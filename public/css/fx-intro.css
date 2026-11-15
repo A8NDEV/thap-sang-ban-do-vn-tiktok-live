@@ -1,0 +1,5 @@
+/* Cảnh mở màn: tên hiện từng chữ. Chỉ transform + opacity; text-shadow TĨNH. */
+.in-title{ position:absolute; left:0; top:300px; width:738px; text-align:center; z-index:28; pointer-events:none; white-space:nowrap;
+  font-size:38px; font-weight:900; letter-spacing:2px; line-height:1.2; color:#ffe08a;
+  text-shadow:0 3px 0 rgba(60,30,0,.75), 0 0 14px rgba(255,170,40,.7); }
+.in-title span{ display:inline-block; white-space:pre; opacity:0; will-change:transform,opacity; }

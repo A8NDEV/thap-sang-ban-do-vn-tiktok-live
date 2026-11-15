@@ -21,6 +21,10 @@ import { setFxOptions, fxOn } from './fx-options.js';
 import { startAmbient as startFxAmbient, stopAmbient as stopFxAmbient } from './fx-ambient.js';
 import { lightWave } from './fx-wave.js';
 import { showNameBurst } from './fx-names.js';
+import { setSky } from './fx-sky.js';
+import { playIntro, maybeAutoIntro } from './fx-intro.js';
+import { startBeat, stopBeat } from './fx-beat.js';
+import { regionBloom } from './fx-region.js';
 
 setupStage();
 initParticles($('#fxCanvas'));
@@ -35,7 +39,8 @@ startAmbient();
 startThemeAmbient();
 
 const handlers = {
-  state: s => { render(s); setFpsMeter(!!s.look?.showFps); setLensOn(s.look?.lensOn !== false); setSoftZoom(!!s.look?.softZoom); renderMission(s.mission); renderHearts(s.hearts); renderPoll(s.poll); setFxOptions(s.look?.fx); fxOn('ambient') ? startFxAmbient() : stopFxAmbient(); syncComboStyle(); },
+  state: s => { render(s); setFpsMeter(!!s.look?.showFps); setLensOn(s.look?.lensOn !== false); setSoftZoom(!!s.look?.softZoom); renderMission(s.mission); renderHearts(s.hearts); renderPoll(s.poll); setFxOptions(s.look?.fx); fxOn('ambient') ? startFxAmbient() : stopFxAmbient(); syncComboStyle(); setSky(fxOn('sky')); fxOn('beat') ? startBeat() : stopBeat(); maybeAutoIntro(s); },
+  intro: () => playIntro({ force: true }),
   levelUp: showLevelUp,
   overtake: showOvertake,
   missionWin,
@@ -52,6 +57,7 @@ const handlers = {
       lanternRise(m.prov);
       if (fxOn('wave')) lightWave(m.prov);
       if (fxOn('name')) showNameBurst({ name: m.name, prov: m.prov });
+      if (fxOn('region')) regionBloom(m.prov);
     } else if (m.newPerson) {
       playSfx('light');
       shot({ prov: m.prov, tag: '🏮 ' + m.name, big: false, comet: true });

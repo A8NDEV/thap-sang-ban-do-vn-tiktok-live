@@ -1,0 +1,16 @@
+/* Hoa theo miền. Chỉ transform + opacity động; không filter / bóng động. */
+.rg-box{ position:absolute; left:0; top:0; width:1080px; height:1920px; z-index:26; pointer-events:none; overflow:hidden; }
+.rg-box i{ position:absolute; left:0; top:0; opacity:0; will-change:transform,opacity; }
+
+/* Bắc: cánh hoa đào */
+.rg-petal{ width:15px; height:10px; border-radius:80% 0 80% 0; background:linear-gradient(135deg,#ffd6e4 0%,#ff9cbc 60%,#f0628f 100%); }
+
+/* Trung: vệt gió cong + hạt cát vàng */
+.rg-wind{ width:230px; height:44px; border-radius:50%; border:3px solid transparent; border-top-color:rgba(255,240,200,.85); }
+.rg-sand{ width:7px; height:7px; border-radius:50%; background:radial-gradient(circle,#fff3b0 0%,#f5c542 70%,#d89a1c 100%); }
+
+/* Nam: hoa sen 3 lớp cánh */
+.rg-lotus{ width:22px; height:46px; margin:-46px 0 0 -11px; border-radius:50% 50% 50% 50% / 85% 85% 15% 15%; transform-origin:50% 100%;
+  background:linear-gradient(0deg,#ffe6f0 0%,#ff9fc4 55%,#e8508f 100%); }
+.rg-lotus.l2{ background:linear-gradient(0deg,#fff0f6 0%,#ffb3d0 60%,#f06aa0 100%); }
+.rg-lotus.l3{ background:linear-gradient(0deg,#fffbe0 0%,#ffe9a8 55%,#ffc94a 100%); }
