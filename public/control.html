@@ -181,8 +181,8 @@
   <!-- ===== 3. LUẬT CHƠI ===== -->
   <div class="page" data-page="luat-choi">
     <section>
-      <h2>🛡️ Tránh bị TikTok phạt chèo kéo quà</h2>
-      <label><span>📣 MC kêu gọi tặng quà <small class="dim">(BẬT: kịch bản như cũ — MC, bảng xu→điểm và quà giả hoạt động bình thường, dễ bị TikTok phạt "chèo kéo quà". TẮT: bỏ câu kêu gọi quà, ẩn bảng xu, tắt người xem/quà giả; MC vẫn nói dày như cũ nhưng chuyển sang kêu gọi thả tim, follow, bình luận, chia sẻ live)</small></span><input type="checkbox" data-k="mcGiftCta"></label>
+      <h2>🛡️ Lời MC kêu gọi quà</h2>
+      <label><span>📣 MC kêu gọi tặng quà <small class="dim">(BẬT: kịch bản MC như cũ (MC kêu gọi tặng quà bằng lời). TẮT: MC không kêu gọi/hứa thưởng tặng quà bằng lời, nói dày như cũ nhưng chuyển sang kêu gọi thả tim, follow, bình luận, chia sẻ live. Quà của người xem, bảng quà tặng và mọi thứ trên màn hình vẫn hiện như thường.)</small></span><input type="checkbox" data-k="mcGiftCta"></label>
     </section>
     <section>
       <h2>Vòng đua & điểm</h2>
@@ -194,6 +194,9 @@
       <label><span>Tặng đủ (xu, cộng dồn cả buổi) → cả nước rực sáng</span><input type="number" data-k="fullCoins"></label>
       <label><span>Điểm thưởng khi thắp sáng cả nước</span><input type="number" data-k="fullPts"></label>
       <label><span>Vắng hoạt động quá (giờ) → tự bắt đầu bản đồ mới (0 = không)</span><input type="number" data-k="newSessionHours"></label>
+      <label><span>🗺️ Hết vòng tắt hết đèn <small>(sau màn chúc mừng quê thắng, bản đồ tối lại để vòng mới thắp từ đầu; tắt = đèn giữ cả buổi)</small></span><input type="checkbox" data-k="roundClearMap"></label>
+      <label><span>Giữ bảng "Quê nhận nhiều quà" khi sang bản đồ mới <small>(tắt = xóa quà mỗi màn)</small></span><input type="checkbox" data-k="keepGifts"></label>
+      <label><span>🔀 Mỗi vòng tự đổi bản đồ khác <small>(hết vòng → ngẫu nhiên sang style màn hình khác đã có)</small></span><input type="checkbox" data-k="themeRotate"></label>
     </section>
     <section>
       <h2>🏅 Cấp độ & vinh danh <small>tôn vinh người tặng quà</small></h2>
@@ -208,6 +211,28 @@
       <label><span>Thời gian mỗi nhiệm vụ (giây)</span><input type="number" data-k="missionSec"></label>
       <label><span>Cần bao nhiêu lượt comment</span><input type="number" data-k="missionTarget"></label>
       <label><span>Điểm thưởng cho quê khi hoàn thành</span><input type="number" data-k="missionPts"></label>
+    </section>
+    <section>
+      <h2>🎆 Hiệu ứng nâng cao <small>mỗi ô bật/tắt riêng; Đập theo nhạc và Hoa theo miền nặng hơn, bật sau khi đo FPS</small></h2>
+      <label><span>Không khí lúc vắng (đom đóm, đèn lồng, sao băng)</span><input type="checkbox" data-k="fxAmbient"></label>
+      <label><span>Ánh sáng lan sang tỉnh kề khi tỉnh mới sáng</span><input type="checkbox" data-k="fxWave"></label>
+      <label><span>Tên chữ lớn khi tỉnh sáng lần đầu</span><input type="checkbox" data-k="fxName"></label>
+      <label><span>Combo thắp đèn đẹp hơn</span><input type="checkbox" data-k="fxCombo"></label>
+      <label><span>Bầu trời đổi theo giờ</span><input type="checkbox" data-k="fxSky"></label>
+      <label><span>Tự chiếu cảnh mở màn khi buổi live còn trống</span><input type="checkbox" data-k="fxIntro"></label>
+      <label><span>Bản đồ đập theo nhạc / giọng MC (nặng hơn)</span><input type="checkbox" data-k="fxBeat"></label>
+      <label><span>Hoa theo miền: đào / gió cát / sen (nặng hơn)</span><input type="checkbox" data-k="fxRegion"></label>
+      <div class="row"><button id="btnIntro">▶ Chiếu cảnh mở màn</button></div>
+    </section>
+    <section>
+      <h2>🤝 Tương tác cả phòng <small>không dính tiền / quà</small></h2>
+      <label><span>Bật thanh mục tiêu tim chung</span><input type="checkbox" data-k="heartGoalOn"></label>
+      <label><span>Mỗi bao nhiêu lượt tim là một mốc <small class="dim">(đủ mốc: pháo hoa + lời cảm ơn)</small></span><input type="number" data-k="heartGoalStep"></label>
+      <label><span>Bật thưởng khi có người chia sẻ live <small class="dim">(đèn lồng + lời cảm ơn)</small></span><input type="checkbox" data-k="shareRewardOn"></label>
+      <label><span>Điểm thưởng cho quê người chia sẻ</span><input type="number" data-k="sharePts"></label>
+      <label><span>Bật bình chọn nhanh A / B / C <small class="dim">(người xem comment A, B hoặc C)</small></span><input type="checkbox" data-k="pollOn"></label>
+      <label><span>Mỗi bao nhiêu phút một bình chọn</span><input type="number" data-k="pollEveryMin"></label>
+      <label><span>Thời gian mỗi bình chọn (giây)</span><input type="number" data-k="pollSec"></label>
     </section>
     <section>
       <h2>⚔️ Đại chiến <small>2 tỉnh dẫn đầu đối đầu</small></h2>

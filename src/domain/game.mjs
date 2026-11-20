@@ -17,6 +17,11 @@ import { addRegionScore, getRegionsSnapshot, resetRegionsScore, is3MienModalOpen
 import { LEVEL_NAMES, parseTiers, levelOf, nextInfo } from './levels.mjs';
 import { rankList, detectOvertake } from './ranking.mjs';
 import { missionOnChat, missionView } from './mission.mjs';
+import { pollOnChat, pollView } from './poll.mjs';
+import { topMilestone, heartView } from './heartgoal.mjs';
+import { shareAllowed } from './share-rule.mjs';
+import { fxFlags } from './fx-flags.mjs';
+import { pickIndex, HEART_LINES, SHARE_LINES } from './engage-lines.mjs';
 
 /* ------------------------------------------------------------------ trạng thái gửi overlay */
 export const litCount = () => Object.keys(S.lit).length;
@@ -33,10 +38,12 @@ export function snapshot(){
     quiz: quizView(),
     chest: chestView(),
     mission: missionView(),
+    hearts: settings.heartGoalOn ? heartView(Number(S.hearts) || 0, settings.heartGoalStep) : null,
+    poll: pollView(),
     regions: getRegionsSnapshot().regions,
     regionsModalOpen: is3MienModalOpen(),
-    wins: S.wins, menu: settings.giftMenuOn && settings.mcGiftCta ? giftMenu(settings.giftMap) : [], owners: settings.ownerOn ? ownersView() : {}, duel: duelView(), rules: { commentPts: settings.commentPts, likePts: settings.likePts, followPts: settings.followPts, duelFollowPts: settings.duelFollowPts, tiers: tiers(), fullCoins: settings.fullCoins, roundMin: settings.roundMin, quizPts: settings.quizPts, levelTiers: settings.levelTiers, levelOn: settings.levelOn },
-    look: { safe: !settings.mcGiftCta, theme: settings.theme, lite: settings.fxLite, camZoom: !!settings.camZoom, showFps: !!settings.showFps, lensOn: !!settings.lensOn, softZoom: !!settings.softZoom, board: settings.boardStyle, map3d: settings.map3d },
+    wins: S.wins, menu: settings.giftMenuOn ? giftMenu(settings.giftMap) : [], owners: settings.ownerOn ? ownersView() : {}, duel: duelView(), rules: { commentPts: settings.commentPts, likePts: settings.likePts, followPts: settings.followPts, duelFollowPts: settings.duelFollowPts, tiers: tiers(), fullCoins: settings.fullCoins, roundMin: settings.roundMin, quizPts: settings.quizPts, levelTiers: settings.levelTiers, levelOn: settings.levelOn },
+    look: { theme: settings.theme, lite: settings.fxLite, camZoom: !!settings.camZoom, showFps: !!settings.showFps, lensOn: !!settings.lensOn, softZoom: !!settings.softZoom, board: settings.boardStyle, map3d: settings.map3d, fx: fxFlags(settings) },
   };
 }
 let pushT = null;
@@ -174,6 +181,7 @@ export function onChat(uid, name, rawText, avatar){
   if (quizAnswer(uid, cleanName(name), avatar, text)) { S.lastAct = Date.now(); return; }   // đáp án đúng câu đố: cộng điểm, không thắp đèn theo nó
   const provs = findProvinces(text);
   if (!isBotUid(uid)) missionOnChat(uid, provs);
+  if (!isBotUid(uid)) pollOnChat(uid, text);
   for (const k of findIsland(text)) {
     broadcast({ t: 'island', k, name: cleanName(name) });
     if (Date.now() - islandAt[k] > 90_000) { islandAt[k] = Date.now(); say([ISLAND_LINE[k]], { tag: 'light2' }); }
@@ -201,11 +209,47 @@ export function onLike(uid, name, n, avatar){
   S.lastAct = Date.now();
   const f = fan(uid, name, avatar);
   seen(uid, name);
+  if (!isBotUid(uid) && settings.heartGoalOn) heartAdd(n);   // tim của mọi người thật, kể cả chưa có quê
   if (!f.home) return;
   if (!S.who[uid]) maybeReturn(uid, name, avatar);
   const k = Math.min(n, 30);
   if (settings.likePts || duelView()) { addPts(f.home, k * settings.likePts, k * settings.duelLikePts); push(); }
   addRegionScore(f.home, 'like', k * (settings.likePts || 1), cleanName(name), avatar, { n: k });
+}
+// mục tiêu tim: cộng vào tổng cả phòng; vượt một hay nhiều mốc chỉ phát MỘT sự kiện (mốc cao nhất)
+let lastHeartLine = -1;
+function heartAdd(n){
+  const add = Math.max(1, Math.min(100, Math.round(+n) || 1)), prev = Number(S.hearts) || 0, total = prev + add, step = settings.heartGoalStep;
+  S.hearts = total;
+  const ms = topMilestone(prev, total, step);
+  if (ms !== null) {
+    broadcast({ t: 'heart', total, step, milestone: ms });
+    lastHeartLine = pickIndex(HEART_LINES.length, lastHeartLine);
+    say([dyn(HEART_LINES[lastHeartLine](ms))], { tag: 'light2' });
+    addLog(`❤️ Cả phòng đã đủ ${ms} lượt tim`);
+  }
+  push();
+}
+// thưởng chia sẻ live: mỗi người 1 lần / 5 phút, lời MC tối đa 1 câu / 8 giây toàn cục (sự kiện overlay vẫn phát)
+const lastShare = new Map();
+let lastShareSay = 0, lastShareLine = -1;
+export function onShare(uid, name, avatar){
+  if (isBotUid(uid) || !settings.shareRewardOn) return;
+  const now = Date.now();
+  if (!shareAllowed(lastShare.get(uid), now, 300_000)) return;
+  if (lastShare.size > 500) for (const [k, t] of lastShare) if (now - t >= 300_000) lastShare.delete(k);
+  lastShare.set(uid, now);
+  S.lastAct = now;
+  const f = fan(uid, name, avatar), nm = cleanName(name) || f.name, pts = settings.sharePts;
+  seen(uid, name);
+  if (f.home && pts > 0) addBonusPts(f.home, pts);   // cố ý: thưởng chia sẻ cũng tính điểm Đại chiến (addBonusPts → addPts → duelAdd), giống thưởng nhiệm vụ
+  broadcast({ t: 'share', name: nm, avatar: avatar || f.avatar || '', prov: f.home || '' });
+  addLog(`🔗 ${nm} đã CHIA SẺ live${f.home && pts > 0 ? ` (+${pts} điểm quê ${f.home})` : ''}`);
+  if (now - lastShareSay >= 8000) {
+    lastShareSay = now;
+    lastShareLine = pickIndex(SHARE_LINES.length, lastShareLine);
+    say([dyn(SHARE_LINES[lastShareLine](nm))], { tag: 'light2' });
+  }
 }
 export function onFollow(uid, name, avatar){
   const isBot = isBotUid(uid);
@@ -234,18 +278,34 @@ export function onFollow(uid, name, avatar){
 }
 // cấp độ + vượt hạng của người tặng (chỉ người thật): tính đồng bộ ngay lúc có quà, phát trễ 700ms để banner quà hiện trước
 const NO_LV = { lv: 0, lvName: '', lvNext: null, lvNeed: 0 };
+// lời MC cấp/hạng: mỗi người tối đa 1 câu / 20 giây, toàn cục 1 câu / 8 giây (sự kiện hình vẫn phát đủ)
+const lvSayAt = new Map();
+let lvSayAll = 0;
+export const _resetLevelSay = () => { lvSayAt.clear(); lvSayAll = 0; };   // chỉ cho test
+function lvSayOk(uid){
+  const now = Date.now();
+  if (now - lvSayAll < 8000 || now - (lvSayAt.get(uid) || 0) < 20_000) return false;
+  if (lvSayAt.size > 200) for (const [k, ts] of lvSayAt) if (now - ts >= 20_000) lvSayAt.delete(k);
+  lvSayAll = now; lvSayAt.set(uid, now);
+  return true;
+}
 function levelFx(D, before, rkBefore, prov, uid){
   if (!settings.levelOn && !settings.overtakeOn) return NO_LV;
-  const tr = parseTiers(settings.levelTiers), ni0 = nextInfo(D.coins, tr), ni = settings.mcGiftCta ? ni0 : { ...ni0, next: null, need: 0 }, oldLv = levelOf(before, tr);
+  const tr = parseTiers(settings.levelTiers), ni = nextInfo(D.coins, tr), oldLv = levelOf(before, tr);
   const who = { name: D.name, avatar: D.avatar || '' };
-  if (settings.levelOn && ni.level > oldLv) setTimeout(() => {
-    broadcast({ t: 'levelUp', ...who, level: ni.level, levelName: LEVEL_NAMES[ni.level], next: ni.next, need: ni.need, prov });
-    say([dyn(ni.next ? `${who.name} lên cấp ${ni.name}! Còn ${ni.need} xu nữa lên ${ni.next}.` : `${who.name} đã đạt cấp ${ni.name}!`)], { tag: 'gift' });
-  }, 700);
-  const ov = settings.overtakeOn && settings.mcGiftCta ? detectOvertake(rkBefore, rankList(S.donors, 1000), uid) : null;
-  if (ov) setTimeout(() => {
-    broadcast({ t: 'overtake', ...who, rank: ov.rank, passedName: ov.passed?.name || '', passedAvatar: ov.passed?.avatar || '' });
-    say([dyn(ov.passed ? `${who.name} vượt ${ov.passed.name} lên hạng ${ov.rank}!` : `${who.name} vào top ${ov.rank}!`)], { tag: 'gift' });
+  const up = settings.levelOn && ni.level > oldLv;
+  const ov = settings.overtakeOn && rkBefore.length ? detectOvertake(rkBefore, rankList(S.donors, 1000), uid) : null;   // người tặng đầu tiên của buổi: không có ai để vượt
+  const sayOv = !!ov && !!(ov.passed || ov.rank <= 3);   // hạng 4-5 mà không vượt ai: chỉ hiện hình, MC không đọc
+  if (up || ov) setTimeout(() => {
+    try {
+      if (up) broadcast({ t: 'levelUp', ...who, level: ni.level, levelName: LEVEL_NAMES[ni.level], next: ni.next, need: ni.need, prov });
+      if (ov) broadcast({ t: 'overtake', ...who, rank: ov.rank, passedName: ov.passed?.name || '', passedAvatar: ov.passed?.avatar || '' });
+      if (!(up || sayOv) || !lvSayOk(uid)) return;   // đang trong thời gian chờ: bỏ câu nói, sự kiện hình đã phát
+      const a = up ? (ni.next ? `${who.name} lên cấp ${ni.name}` : `${who.name} đã đạt cấp ${ni.name}`) : who.name;
+      const b = sayOv ? (ov.passed ? `vượt ${ov.passed.name} lên hạng ${ov.rank}` : `vào top ${ov.rank}`) : '';
+      const cta = up && ni.next && settings.mcGiftCta ? ` Còn ${ni.need} xu nữa lên ${ni.next}.` : '';
+      say([dyn(up && sayOv ? `${a} và ${b}!${cta}` : up ? `${a}!${cta}` : `${a} ${b}!`)], { tag: 'gift' });   // một quà → tối đa MỘT câu cấp/hạng
+    } catch (err) { addLog('⚠️ levelFx: ' + (err?.message || err)); }
   }, 700);
   return settings.levelOn ? { lv: ni.level, lvName: LEVEL_NAMES[ni.level], lvNext: ni.next, lvNeed: ni.need } : NO_LV;
 }
@@ -259,7 +319,7 @@ export function onGift(uid, name, giftName, cnt, price, avatar, giftId = ''){
     const D = S.donors[uid] ||= { name: nm, avatar: avatar || '', coins: 0 };
     const rkBefore = rankList(S.donors, 1000);
     const before = D.coins; D.coins += coins; D.name = nm; if (avatar) D.avatar = avatar;
-    lvx = levelFx(D, before, rkBefore, f.home, uid);
+    try { lvx = levelFx(D, before, rkBefore, f.home, uid); } catch (err) { addLog('⚠️ levelFx: ' + (err?.message || err)); }   // lỗi hiệu ứng không bao giờ chặn xử lý quà
   }
   const act = actFor(settings.giftMap, giftId, giftName);   // quà đã gán hành động (Sàn Quẩy-style)
   const full = act === 'casang' || crossedFull(S.donors[uid]?.coins, coins, settings.fullCoins);   // vượt một mốc fullCoins (không bật lại ở mọi quà sau)
@@ -336,6 +396,31 @@ setInterval(() => {   // dọn bộ nhớ: stream 24/7 không để Map phình m
 
 /* ------------------------------------------------------------------ vòng đua thắp đèn */
 let warned = false;
+export const ROUND = { clearMs: 8000 };
+let clearT = null;
+// hết vòng: tắt đèn các tỉnh sáng trước lúc hết vòng (tỉnh vừa sáng trong thời gian chờ thì giữ), giữ tim + số vòng thắng
+function clearMapAfterRound(cut){
+  clearT = null;
+  for (const k of Object.keys(S.lit)) if ((S.lit[k].at || 0) < cut) delete S.lit[k];
+  S.who = {}; S.last = null; batchLit = [];
+  if (settings.keepGifts === false) S.gifts = {};
+  addLog(`🗺️ Hết vòng ${S.roundNo - 1}: tắt hết đèn, vòng ${S.roundNo} thắp lại từ đầu`);
+  broadcast({ t: 'reset' });
+  pushNow();
+}
+// đổi style bản đồ ngẫu nhiên mỗi vòng (chọn khác style đang dùng); pool do server.mjs gắn vào
+let themePool = () => ['mac-dinh'];
+export const setThemePool = fn => { themePool = fn; };
+export function rotateTheme(){
+  if (!settings.themeRotate) return false;
+  const pool = [...new Set(themePool())].filter(t => t !== settings.theme);
+  if (!pool.length) return false;
+  settings.theme = pool[Math.floor(Math.random() * pool.length)];
+  save();
+  broadcast({ t: 'settings', settings }, 'control');
+  addLog(`🎨 Vòng ${S.roundNo}: đổi bản đồ sang style "${settings.theme}"`);
+  return true;
+}
 export function endRound(){
   const top = sortObj(S.pts, 3);
   if (top.length) {
@@ -345,13 +430,20 @@ export function endRound(){
     addLog(`🏆 Vòng ${S.roundNo}: ${w} thắng với ${p} điểm`);
     say([dyn(`Hết giờ! Vòng đua thứ ${S.roundNo}, quê ${w} thắp sáng nhất với ${p} điểm.`), `Chúc mừng bà con ${w}!`, ...(second ? [`Về nhì là ${second[0]}.`] : []), settings.mcGiftCta ? 'Vòng mới bắt đầu rồi, tặng quà để quê mình về nhất nhé!' : 'Vòng mới bắt đầu rồi, bà con comment tên quê để thắp đèn nhé!'], { tag: 'win' });
     S.roundNo++;
+    rotateTheme();
+    if (settings.roundClearMap) {
+      clearTimeout(clearT);
+      const cut = Date.now();
+      clearT = setTimeout(() => clearMapAfterRound(cut), ROUND.clearMs);
+      clearT.unref?.();
+    }
   }
   S.pts = {}; S.roundEnd = top.length ? Date.now() + settings.roundMin * 60_000 : 0; warned = false;
   pushNow();
 }
 export function resetRound(){ S.pts = {}; S.roundEnd = 0; warned = false; addLog('🔄 Đã xóa điểm vòng đua hiện tại'); pushNow(); }
-export function resetMap(){ resetSession(true); addLog('🗺️ Đã tắt hết đèn — bản đồ mới'); broadcast({ t: 'reset' }); pushNow(); }
-export function newSession(){ resetSession(false); addLog('🆕 Buổi live mới: xóa bản đồ, điểm, quà, số vòng thắng'); broadcast({ t: 'reset' }); pushNow(); }
+export function resetMap(){ clearTimeout(clearT); clearT = null; resetSession(true); addLog('🗺️ Đã tắt hết đèn — bản đồ mới'); broadcast({ t: 'reset' }); pushNow(); }
+export function newSession(){ clearTimeout(clearT); clearT = null; resetSession(false); addLog('🆕 Buổi live mới: xóa bản đồ, điểm, quà, số vòng thắng'); broadcast({ t: 'reset' }); pushNow(); }
 
 export function startGameLoops(){
   // nhiều tỉnh sáng dồn dập → gộp thành 1 câu điểm danh

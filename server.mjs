@@ -16,7 +16,8 @@ import { loadAppConfig, findFreePort } from './src/config.mjs';
 import { stopOldInstance } from './src/core/single.mjs';
 import { settings } from './src/domain/settings.mjs';
 import { loadStore, flushAll } from './src/domain/store.mjs';
-import { startGameLoops, litCount, peopleCount } from './src/domain/game.mjs';
+import { startGameLoops, litCount, peopleCount, setThemePool } from './src/domain/game.mjs';
+import { styles } from './src/dist/giao-dien.mjs';
 import { startDuelLoop } from './src/domain/duel.mjs';
 import { startQuizLoop } from './src/domain/quiz.mjs';
 import { startPollLoop } from './src/domain/poll.mjs';
@@ -38,6 +39,7 @@ const EXIT_PORT_BUSY = 98;
 const cfg = loadAppConfig();
 if (await stopOldInstance(cfg.rpcToken)) addLog('♻️ Đã tắt bản app đang chạy trước đó.');
 loadStore();
+setThemePool(() => ['mac-dinh', ...styles.list()]);
 
 const port = await findFreePort(cfg.port, cfg.host).catch(e => { console.error(e.message); process.exit(EXIT_PORT_BUSY); });
 if (port !== cfg.port) addLog(`⚠️ Cổng ${cfg.port} đang bận → dùng cổng ${port}`);

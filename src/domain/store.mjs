@@ -25,8 +25,12 @@ export function loadStore(){
   Object.assign(owners, { totals: {}, owner: {} }, readJSON(FILES.owners, {}) || {});
 }
 
-// đổi buổi live / bản đồ mới (giữ hoặc bỏ số vòng thắng)
-export function resetSession(keepWins = false){ const wins = S.wins; S = freshSession(); if (keepWins) S.wins = wins; }
+// đổi buổi live / bản đồ mới (keepWins: giữ số vòng thắng + số vòng đang đua; quà giữ nếu keepGifts bật)
+export function resetSession(keepWins = false){
+  const { wins, roundNo, gifts } = S;
+  S = freshSession();
+  if (keepWins) { S.wins = wins; S.roundNo = roundNo || 1; if (settings.keepGifts !== false) S.gifts = gifts; }
+}
 
 let saveT = null, fansT = null, ownersT = null;
 const writeOwners = () => { try { writeJSON(FILES.owners, owners); } catch {} };

@@ -1,6 +1,7 @@
 // TẦNG 3 — cài đặt game (lưu chung trong data/state.json cùng dữ liệu buổi live).
 import { clamp } from '../core/bus.mjs';
 import { defaultGiftMap, cleanGiftMap } from './gift-acts.mjs';
+import { parseTiers } from './levels.mjs';
 
 export const settings = {
   roundMin: 5,                 // mỗi vòng đua thắp đèn (phút)
@@ -8,6 +9,7 @@ export const settings = {
   followPts: 20,               // điểm mỗi lượt follow bình thường
   giftTiers: '1:3,5:30,30:100,100:500,1000:3000',   // bậc quà theo tổng xu mỗi lần tặng → điểm
   fullCoins: 500, fullPts: 10000,   // tặng đủ ngần này xu (một lần hoặc cộng dồn) → cả nước rực sáng
+  themeRotate: false, roundClearMap: false, keepGifts: true,   // hết vòng: tự đổi style màn hình · tắt hết đèn sau màn chúc mừng · giữ bảng "Quê nhận nhiều quà" khi sang bản đồ mới
   music: true, musicVol: 50,
   voice: 'nam', rate: 15, pitch: 0, volume: 20,   // giọng nam Nam Minh như Quán Nhậu, đọc nhanh hơn 15%
   readFact: true, greetJoin: true, idleTalk: true, idleGapSec: 1, returnLight: true,
@@ -28,11 +30,12 @@ export const settings = {
   levelTiers: '10,100,500,2000',   // 4 mốc xu tăng dần: cấp 1 Đồng, 2 Bạc, 3 Vàng, 4 Kim cương
   overtakeOn: true,            // cảnh "vượt hạng" khi người tặng vượt người khác trong top 5
   missionOn: false, missionEveryMin: 8, missionSec: 60, missionTarget: 30, missionPts: 300,   // nhiệm vụ cả phòng: mỗi N phút · M giây · cần X lượt comment tên tỉnh · điểm thưởng cho quê đó
+  heartGoalOn: true, heartGoalStep: 1000, shareRewardOn: true, sharePts: 30, pollOn: false, pollEveryMin: 10, pollSec: 40, fxAmbient: true, fxWave: true, fxName: true, fxCombo: true, fxSky: true, fxIntro: true, fxBeat: false, fxRegion: false,   // tương tác cả phòng: thanh mục tiêu tim (mỗi bội số của bước là một mốc) · thưởng chia sẻ (điểm cho quê) · bình chọn A/B/C mỗi N phút trong M giây
   showFps: false,              // hiện FPS + mức chất lượng ở góc overlay (để đo máy; nhớ tắt khi live thật)
   camZoom: false,              // Camera zoom tỉnh: mặc định false (toàn cảnh cố định mượt mà 60fps), bật nếu muốn lướt Flycam
   boardStyle: 'theo-style',    // style bảng thống kê bên phải: theo-style · khung-vang · toi-gian · the-sang
   quizOn: true, quizEveryMin: 3, quizSec: 40, quizPts: 10,   // câu đố lúc MC rảnh: mỗi N phút · trả lời trong M giây · điểm người đúng đầu tiên               // hiệu ứng nhẹ (máy yếu / OBS cũ): tắt nền động, kính mờ, sao chổi
-  mcGiftCta: false,            // MC kêu gọi tặng quà + bảng xu→điểm + quà giả (BẬT = như cũ, dễ bị TikTok phạt "chèo kéo quà"; TẮT = chế độ an toàn)
+  mcGiftCta: false,            // MC kêu gọi tặng quà BẰNG LỜI (BẬT = kịch bản cũ, dễ bị TikTok phạt "chèo kéo quà"; TẮT = MC chuyển sang kêu gọi thả tim, follow, bình luận, chia sẻ). Chỉ đổi lời MC, màn hình giữ nguyên
   lastUniqueId: '',
 };
 
@@ -44,11 +47,13 @@ const RULES = {
   giftTiers: v => String(v || '').replace(/[^\d:,; ]/g, '').slice(0, 200) || '1:3,5:30,30:100', fullCoins: v => clamp(v, 0, 1000000), fullPts: v => clamp(v, 0, 10000000), music: v => !!v, musicVol: v => clamp(v, 0, 100),
   voice: () => 'nam',   // chốt 1 giọng Nam Minh
    rate: v => clamp(v, -50, 50), pitch: v => clamp(v, -40, 40), volume: v => clamp(v, 0, 100),
+  themeRotate: v => !!v, roundClearMap: v => !!v, keepGifts: v => !!v,
   readFact: v => !!v, greetJoin: v => !!v, idleTalk: v => !!v, idleGapSec: v => clamp(v, 0, 600), returnLight: v => !!v,
   ownerOn: v => !!v, duelOn: v => !!v, duelEveryMin: v => clamp(v, 2, 120), duelSec: v => clamp(v, 20, 300), duelBonus: v => clamp(v, 0, 100000), duelCmtPts: v => clamp(v, 0, 1000), duelLikePts: v => clamp(v, 0, 1000), duelFollowPts: v => clamp(v, 0, 1000),
   giftMap: v => cleanGiftMap(v), giftMenuOn: v => !!v,
   autoPacing: v => !!v, autoPaceSpeed: v => ['slow', 'normal', 'fast'].includes(v) ? v : 'normal', autoPaceGifts: v => !!v,
-  theme: v => THEMES.includes(v) ? v : 'mac-dinh', fxLite: v => !!v, lensOn: v => !!v, softZoom: v => !!v, showFps: v => !!v, levelOn: v => !!v, levelTiers: v => String(v||'').replace(/[^\d,]/g,'').slice(0,40) || '10,100,500,2000', overtakeOn: v => !!v, missionOn: v => !!v, missionEveryMin: v => clamp(v, 2, 120), missionSec: v => clamp(v, 20, 300), missionTarget: v => clamp(v, 5, 1000), missionPts: v => clamp(v, 0, 10000), camZoom: v => !!v, map3d: v => !!v, boardStyle: v => BOARDS.includes(v) ? v : 'theo-style',
+  theme: v => THEMES.includes(v) ? v : 'mac-dinh', fxLite: v => !!v, lensOn: v => !!v, softZoom: v => !!v, showFps: v => !!v, levelOn: v => !!v, levelTiers: v => parseTiers(String(v||'').replace(/[^\d,]/g,'').slice(0,40)).join(','), overtakeOn: v => !!v, missionOn: v => !!v, missionEveryMin: v => clamp(v, 2, 120), missionSec: v => clamp(v, 20, 300), missionTarget: v => clamp(v, 5, 1000), missionPts: v => clamp(v, 0, 10000), camZoom: v => !!v, map3d: v => !!v, boardStyle: v => BOARDS.includes(v) ? v : 'theo-style',
+  heartGoalOn: v => !!v, heartGoalStep: v => clamp(v, 50, 1000000), shareRewardOn: v => !!v, sharePts: v => clamp(v, 0, 1000), pollOn: v => !!v, pollEveryMin: v => clamp(v, 2, 120), pollSec: v => clamp(v, 15, 180), fxAmbient: v => !!v, fxWave: v => !!v, fxName: v => !!v, fxCombo: v => !!v, fxSky: v => !!v, fxIntro: v => !!v, fxBeat: v => !!v, fxRegion: v => !!v,
   quizOn: v => !!v, quizEveryMin: v => clamp(v, 1, 60), quizSec: v => clamp(v, 15, 180), quizPts: v => clamp(v, 0, 10000),
   mcGiftCta: v => !!v, newSessionHours: v => clamp(v, 0, 72), lastUniqueId: v => String(v || '').replace(/[^\w.]/g, '').slice(0, 40),
 };
